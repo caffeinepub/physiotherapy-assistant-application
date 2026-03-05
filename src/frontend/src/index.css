@@ -1,0 +1,360 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   FONTS — self-hosted only, no external CDN
+   ============================================================ */
+@font-face {
+  font-family: "Sora";
+  src: url("/assets/fonts/Sora-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Deep navy/teal clinical dark theme (dark-first) */
+    --background: 0.13 0.025 240;
+    --foreground: 0.93 0.01 220;
+
+    --card: 0.17 0.03 240;
+    --card-foreground: 0.93 0.01 220;
+
+    --popover: 0.15 0.03 238;
+    --popover-foreground: 0.93 0.01 220;
+
+    /* Vibrant teal-cyan primary */
+    --primary: 0.72 0.17 195;
+    --primary-foreground: 0.1 0.03 240;
+
+    --secondary: 0.22 0.035 240;
+    --secondary-foreground: 0.9 0.01 220;
+
+    --muted: 0.2 0.025 240;
+    --muted-foreground: 0.58 0.02 230;
+
+    --accent: 0.28 0.05 220;
+    --accent-foreground: 0.9 0.01 220;
+
+    --destructive: 0.62 0.22 25;
+    --destructive-foreground: 0.97 0 0;
+
+    --success: 0.68 0.18 155;
+    --success-foreground: 0.1 0.03 240;
+
+    --warning: 0.78 0.18 75;
+    --warning-foreground: 0.1 0.03 240;
+
+    --border: 0.28 0.03 240;
+    --input: 0.22 0.03 240;
+    --ring: 0.72 0.17 195;
+
+    --chart-1: 0.72 0.17 195;
+    --chart-2: 0.68 0.2 250;
+    --chart-3: 0.78 0.18 155;
+    --chart-4: 0.75 0.2 300;
+    --chart-5: 0.8 0.18 75;
+
+    /* Sidebar */
+    --sidebar: 0.11 0.03 242;
+    --sidebar-foreground: 0.9 0.01 220;
+    --sidebar-primary: 0.72 0.17 195;
+    --sidebar-primary-foreground: 0.1 0.03 240;
+    --sidebar-accent: 0.2 0.04 240;
+    --sidebar-accent-foreground: 0.9 0.01 220;
+    --sidebar-border: 0.25 0.03 240;
+    --sidebar-ring: 0.72 0.17 195;
+
+    /* 3D / glass custom props */
+    --glass-bg: oklch(0.2 0.04 240 / 0.6);
+    --glass-border: oklch(0.5 0.08 200 / 0.25);
+    --glass-highlight: oklch(0.9 0.02 220 / 0.08);
+    --shadow-color: oklch(0.05 0.05 240 / 0.6);
+    --glow-primary: oklch(0.72 0.17 195 / 0.35);
+    --glow-accent: oklch(0.68 0.2 250 / 0.25);
+
+    /* 3D card gradients */
+    --card-gradient-from: oklch(0.2 0.04 238 / 0.95);
+    --card-gradient-to: oklch(0.16 0.03 242 / 0.95);
+  }
+
+  /* Light mode override */
+  .light {
+    --background: 0.97 0.005 240;
+    --foreground: 0.14 0.03 240;
+
+    --card: 1.0 0 0;
+    --card-foreground: 0.14 0.03 240;
+
+    --popover: 1.0 0 0;
+    --popover-foreground: 0.14 0.03 240;
+
+    --primary: 0.55 0.18 195;
+    --primary-foreground: 0.99 0 0;
+
+    --secondary: 0.93 0.015 230;
+    --secondary-foreground: 0.2 0.03 240;
+
+    --muted: 0.94 0.01 230;
+    --muted-foreground: 0.48 0.02 230;
+
+    --accent: 0.91 0.03 205;
+    --accent-foreground: 0.2 0.03 240;
+
+    --destructive: 0.6 0.22 25;
+    --destructive-foreground: 0.99 0 0;
+
+    --border: 0.88 0.015 230;
+    --input: 0.88 0.015 230;
+    --ring: 0.55 0.18 195;
+
+    --glass-bg: oklch(1.0 0 0 / 0.7);
+    --glass-border: oklch(0.6 0.1 200 / 0.2);
+    --glass-highlight: oklch(1.0 0 0 / 0.5);
+    --shadow-color: oklch(0.3 0.05 230 / 0.15);
+    --glow-primary: oklch(0.55 0.18 195 / 0.2);
+    --glow-accent: oklch(0.55 0.18 250 / 0.15);
+
+    --card-gradient-from: oklch(1.0 0 0);
+    --card-gradient-to: oklch(0.97 0.005 230);
+
+    --sidebar: 0.95 0.01 230;
+    --sidebar-foreground: 0.14 0.03 240;
+    --sidebar-primary: 0.55 0.18 195;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.91 0.02 220;
+    --sidebar-accent-foreground: 0.2 0.03 240;
+    --sidebar-border: 0.88 0.015 230;
+    --sidebar-ring: 0.55 0.18 195;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  .light html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Sora", "Plus Jakarta Sans", system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Cabinet Grotesk", "Sora", system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES — 3D / Glass / Depth
+   ============================================================ */
+@layer utilities {
+  /* Glassmorphism card */
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 8px 32px
+      var(--shadow-color), 0 1px 0 oklch(0.9 0.02 220 / 0.06) inset;
+  }
+
+  /* Elevated card with 3D depth illusion */
+  .card-3d {
+    background: linear-gradient(
+      135deg,
+      var(--card-gradient-from) 0%,
+      var(--card-gradient-to) 100%
+    );
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 0 0 1px oklch(0.9 0.02 220 / 0.04) inset, 0 2px 4px
+      var(--shadow-color), 0 8px 24px var(--shadow-color), 0 1px 0
+      var(--glass-highlight) inset;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card-3d:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 1px oklch(0.9 0.02 220 / 0.06) inset,
+      0 4px 8px var(--shadow-color),
+      0 16px 40px var(--shadow-color),
+      0 1px 0 var(--glass-highlight) inset,
+      0 0 32px var(--glow-primary);
+  }
+
+  /* Primary glow button */
+  .btn-glow {
+    box-shadow: 0 0 20px var(--glow-primary), 0 4px 16px var(--shadow-color);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 32px var(--glow-primary), 0 8px 24px var(--shadow-color);
+    transform: translateY(-1px);
+  }
+
+  /* Metric stat card */
+  .stat-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      var(--card-gradient-from) 0%,
+      var(--card-gradient-to) 100%
+    );
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 8px 32px
+      var(--shadow-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--glow-primary) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+  }
+
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 16px 48px
+      var(--shadow-color), 0 0 40px var(--glow-primary);
+  }
+
+  /* Glowing divider */
+  .divider-glow {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.72 0.17 195 / 0.5) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Neon badge */
+  .badge-neon {
+    border: 1px solid oklch(0.72 0.17 195 / 0.5);
+    background: oklch(0.72 0.17 195 / 0.1);
+    color: oklch(0.85 0.12 195);
+    text-shadow: 0 0 8px oklch(0.72 0.17 195 / 0.6);
+    box-shadow: 0 0 12px oklch(0.72 0.17 195 / 0.2);
+  }
+
+  /* Animated background grid */
+  .bg-grid {
+    background-image: linear-gradient(
+        oklch(0.4 0.05 240 / 0.08) 1px,
+        transparent 1px
+      ), linear-gradient(90deg, oklch(0.4 0.05 240 / 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Radial glow for hero/landing */
+  .hero-glow {
+    background: radial-gradient(
+        ellipse 60% 40% at 50% 0%,
+        oklch(0.72 0.17 195 / 0.15) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 40% 30% at 80% 50%,
+        oklch(0.68 0.2 250 / 0.1) 0%,
+        transparent 60%
+      );
+  }
+
+  /* Tab active state glow */
+  .tab-active-glow {
+    box-shadow: 0 0 16px var(--glow-primary);
+  }
+
+  /* Input depth */
+  .input-3d {
+    background: oklch(0.16 0.03 242 / 0.8);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 4px var(--shadow-color) inset, 0 1px 0
+      var(--glass-highlight);
+  }
+
+  /* Icon glow containers */
+  .icon-glow-teal {
+    background: oklch(0.72 0.17 195 / 0.12);
+    border: 1px solid oklch(0.72 0.17 195 / 0.3);
+    box-shadow: 0 0 16px oklch(0.72 0.17 195 / 0.2);
+  }
+
+  .icon-glow-blue {
+    background: oklch(0.68 0.2 250 / 0.12);
+    border: 1px solid oklch(0.68 0.2 250 / 0.3);
+    box-shadow: 0 0 16px oklch(0.68 0.2 250 / 0.2);
+  }
+
+  .icon-glow-green {
+    background: oklch(0.68 0.18 155 / 0.12);
+    border: 1px solid oklch(0.68 0.18 155 / 0.3);
+    box-shadow: 0 0 16px oklch(0.68 0.18 155 / 0.2);
+  }
+
+  .icon-glow-purple {
+    background: oklch(0.68 0.2 290 / 0.12);
+    border: 1px solid oklch(0.68 0.2 290 / 0.3);
+    box-shadow: 0 0 16px oklch(0.68 0.2 290 / 0.2);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0.05 240 / 0.6);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.55 0.08 210 / 0.8);
+  }
+}
