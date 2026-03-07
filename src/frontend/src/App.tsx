@@ -1,12 +1,23 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "next-themes";
+import { useMemo, useState } from "react";
+import { UserRole } from "./backend";
+import AccessRestrictedScreen from "./components/AccessRestrictedScreen";
 import Header from "./components/Header";
 import ProfileSetupModal from "./components/ProfileSetupModal";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
-import { useGetCallerUserProfile } from "./hooks/useQueries";
+import {
+  useGetCallerUserProfile,
+  useGetCallerUserRole,
+} from "./hooks/useQueries";
+import AccessManagement from "./pages/AccessManagement";
 import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
+import { hasValidRedemption } from "./utils/inviteCodes";
+import { getUrlParameter } from "./utils/urlParams";
+
+type ActiveView = "dashboard" | "access";
 
 export default function App() {
   const { identity, loginStatus, login } = useInternetIdentity();
@@ -16,10 +27,34 @@ export default function App() {
     isFetched,
   } = useGetCallerUserProfile();
 
+  const { data: callerRole, isLoading: roleLoading } = useGetCallerUserRole();
+
+  const [activeView, setActiveView] = useState<ActiveView>("dashboard");
+
+  // Read invite code from URL on mount (stable reference, URL doesn't change)
+  const initialInviteCode = useMemo(() => getUrlParameter("code") ?? "", []);
+
   const isAuthenticated = !!identity;
   const isInitializing = loginStatus === "initializing";
+
   const showProfileSetup =
     isAuthenticated && !profileLoading && isFetched && userProfile === null;
+
+  // A user is "access restricted" when:
+  // 1. They are authenticated
+  // 2. Their profile exists (they've registered)
+  // 3. Their role is "guest" (blocked / not yet approved)
+  // 4. They haven't just redeemed a valid invite code in this session
+  const isGuestRole =
+    !roleLoading && callerRole !== undefined && callerRole === UserRole.guest;
+
+  const showAccessRestricted =
+    isAuthenticated &&
+    !profileLoading &&
+    isFetched &&
+    userProfile !== null &&
+    isGuestRole &&
+    !hasValidRedemption();
 
   if (isInitializing) {
     return (
@@ -45,15 +80,25 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <div className="flex min-h-screen flex-col bg-background">
-        {isAuthenticated && <Header />}
+        {isAuthenticated && !showAccessRestricted && (
+          <Header
+            activeView={activeView}
+            onNavigateAccess={() => setActiveView("access")}
+            onNavigateDashboard={() => setActiveView("dashboard")}
+          />
+        )}
         <main className="flex-1">
           {!isAuthenticated ? (
             <LandingPage login={login} loginStatus={loginStatus} />
+          ) : showAccessRestricted ? (
+            <AccessRestrictedScreen initialCode={initialInviteCode} />
+          ) : activeView === "access" ? (
+            <AccessManagement />
           ) : (
             <Dashboard />
           )}
         </main>
-        {isAuthenticated && (
+        {isAuthenticated && !showAccessRestricted && (
           <footer className="border-t border-border/30 bg-background/50 backdrop-blur">
             <div className="container mx-auto px-4 py-4 text-center text-xs text-muted-foreground">
               PhysioAssist is a clinical decision-support tool and does not

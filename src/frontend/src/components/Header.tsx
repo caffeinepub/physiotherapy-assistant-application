@@ -8,13 +8,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
-import { Activity, LogOut, User } from "lucide-react";
+import { Activity, LogOut, Shield, User } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useGetCallerUserProfile } from "../hooks/useQueries";
+import { useGetCallerUserProfile, useIsCallerAdmin } from "../hooks/useQueries";
 
-export default function Header() {
+interface HeaderProps {
+  activeView?: string;
+  onNavigateAccess?: () => void;
+  onNavigateDashboard?: () => void;
+}
+
+export default function Header({
+  activeView,
+  onNavigateAccess,
+  onNavigateDashboard,
+}: HeaderProps) {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
+  const { data: isAdmin } = useIsCallerAdmin();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
@@ -46,9 +57,16 @@ export default function Header() {
           "0 1px 0 oklch(0.72 0.17 195 / 0.1), 0 4px 20px oklch(0.05 0.05 240 / 0.4)",
       }}
     >
+      {/* Shimmer power line */}
+      <div className="shimmer-border-line" />
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <div className="flex items-center gap-3" data-ocid="header.logo_link">
+        <button
+          type="button"
+          onClick={onNavigateDashboard}
+          className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+          data-ocid="header.logo_link"
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl icon-glow-teal">
             <Activity className="h-5 w-5 text-[oklch(0.72_0.17_195)]" />
           </div>
@@ -60,10 +78,51 @@ export default function Header() {
               Clinical AI
             </span>
           </div>
-        </div>
+        </button>
+
+        {/* Center nav — admin access link */}
+        {isAuthenticated && isAdmin && onNavigateAccess && (
+          <nav className="hidden sm:flex items-center">
+            <button
+              type="button"
+              data-ocid="access.nav.link"
+              onClick={onNavigateAccess}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                activeView === "access"
+                  ? "bg-[oklch(0.72_0.17_195/0.15)] text-[oklch(0.82_0.14_195)] border border-[oklch(0.72_0.17_195/0.3)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-[oklch(0.72_0.17_195/0.08)]"
+              }`}
+              style={
+                activeView === "access"
+                  ? { boxShadow: "0 0 16px oklch(0.72 0.17 195 / 0.2)" }
+                  : {}
+              }
+            >
+              <Shield className="h-4 w-4" />
+              Access
+            </button>
+          </nav>
+        )}
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          {/* Mobile admin access button */}
+          {isAuthenticated && isAdmin && onNavigateAccess && (
+            <button
+              type="button"
+              data-ocid="access.nav.link"
+              onClick={onNavigateAccess}
+              className={`sm:hidden flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-semibold transition-all duration-200 ${
+                activeView === "access"
+                  ? "bg-[oklch(0.72_0.17_195/0.15)] text-[oklch(0.82_0.14_195)] border border-[oklch(0.72_0.17_195/0.3)]"
+                  : "text-muted-foreground border border-[oklch(0.5_0.08_240/0.2)] hover:border-[oklch(0.72_0.17_195/0.25)] hover:text-foreground"
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5" />
+              Access
+            </button>
+          )}
+
           {isAuthenticated && userProfile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

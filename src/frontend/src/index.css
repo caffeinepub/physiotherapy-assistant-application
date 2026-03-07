@@ -479,6 +479,79 @@
       oklch(0.72 0.17 195 / 0.2);
   }
 
+  /* ============================================================
+     INNER PAGE ANIMATIONS & UTILITIES
+     ============================================================ */
+
+  /* Page mount fade-slide-in */
+  @keyframes fade-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .page-enter {
+    animation: fade-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Stat card glow pulse on load */
+  @keyframes stat-glow-pulse {
+    0% {
+      box-shadow: 0 1px 0 oklch(0.9 0.02 220 / 0.08) inset, 0 8px 32px
+        oklch(0.05 0.05 240 / 0.6);
+    }
+    50% {
+      box-shadow: 0 1px 0 oklch(0.9 0.02 220 / 0.12) inset, 0 8px 32px
+        oklch(0.05 0.05 240 / 0.6), 0 0 40px oklch(0.72 0.17 195 / 0.18);
+    }
+    100% {
+      box-shadow: 0 1px 0 oklch(0.9 0.02 220 / 0.08) inset, 0 8px 32px
+        oklch(0.05 0.05 240 / 0.6);
+    }
+  }
+  .stat-glow-pulse {
+    animation: stat-glow-pulse 2.5s ease-in-out 0.3s 2;
+  }
+
+  /* Shimmer border line — animated gradient bar */
+  @keyframes shimmer-line {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+  .shimmer-border-line {
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      oklch(0.72 0.17 195 / 0) 0%,
+      oklch(0.72 0.17 195 / 0.8) 20%,
+      oklch(0.68 0.2 250 / 0.9) 40%,
+      oklch(0.72 0.17 195 / 0.8) 60%,
+      oklch(0.75 0.2 300 / 0.7) 80%,
+      oklch(0.72 0.17 195 / 0) 100%
+    );
+    background-size: 200% auto;
+    animation: shimmer-line 3s linear infinite;
+  }
+
+  /* Waveform bar animation */
+  @keyframes waveform-bar {
+    0%,
+    100% {
+      transform: scaleY(0.2);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;

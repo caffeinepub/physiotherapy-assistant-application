@@ -26,6 +26,12 @@ actor {
     specialization : Text;
   };
 
+  public type UserEntry = {
+    principal : Principal;
+    role : AccessControl.UserRole;
+    profile : ?UserProfile;
+  };
+
   public type PatientProfile = {
     id : PatientId;
     firstName : Text;
@@ -211,6 +217,52 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
+  };
+
+  // Admin-only user management
+  public query ({ caller }) func getAllUsers() : async [UserEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can fetch all users");
+    };
+
+    // Collect all users by iterating through the map
+    let entries = Map.empty<Principal, UserEntry>();
+
+    // We need to iterate through all possible users
+    // Since we can't directly access userRoles, we collect from userProfiles
+    // and check their roles
+    for ((principal, profile) in userProfiles.entries()) {
+      let role = AccessControl.getUserRole(accessControlState, principal);
+      entries.add(principal, {
+        principal;
+        role;
+        profile = ?profile;
+      });
+    };
+
+    // Also need to check for users who have roles but no profiles
+    // This is a limitation - we can only return users we know about through profiles
+    // or through the caller's knowledge
+    entries.values().toArray();
+  };
+
+  public shared ({ caller }) func removeUser(user : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can remove users");
+    };
+
+    let userRole = AccessControl.getUserRole(accessControlState, user);
+    if (userRole == #admin) {
+      Runtime.trap("Cannot remove admin users");
+    };
+
+    // Since AccessControl module doesn't provide a removeUser function,
+    // we assign the user to #guest role to effectively block them
+    // This is the blocking mechanism mentioned in the user request
+    AccessControl.assignRole(accessControlState, caller, user, #guest);
+
+    // Optionally remove their profile as well
+    userProfiles.remove(user);
   };
 
   // Patient functions

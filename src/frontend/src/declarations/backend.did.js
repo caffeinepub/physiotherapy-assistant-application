@@ -120,6 +120,11 @@ export const UserProfile = IDL.Record({
   'credentials' : IDL.Text,
   'specialization' : IDL.Text,
 });
+export const UserEntry = IDL.Record({
+  'principal' : IDL.Principal,
+  'role' : UserRole,
+  'profile' : IDL.Opt(UserProfile),
+});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Deviation = IDL.Record({
   'name' : IDL.Text,
@@ -189,6 +194,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(ProvisionalPhysioImpression)],
       ['query'],
     ),
+  'getAllUsers' : IDL.Func([], [IDL.Vec(UserEntry)], ['query']),
   'getAssessment' : IDL.Func([AssessmentId], [IDL.Opt(Assessment)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -236,6 +242,7 @@ export const idlService = IDL.Service({
       [PostureAssessmentReport],
       [],
     ),
+  'removeUser' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitPostureAssessment' : IDL.Func(
       [PostureAssessmentInput],
@@ -359,6 +366,11 @@ export const idlFactory = ({ IDL }) => {
     'credentials' : IDL.Text,
     'specialization' : IDL.Text,
   });
+  const UserEntry = IDL.Record({
+    'principal' : IDL.Principal,
+    'role' : UserRole,
+    'profile' : IDL.Opt(UserProfile),
+  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const Deviation = IDL.Record({
     'name' : IDL.Text,
@@ -428,6 +440,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(ProvisionalPhysioImpression)],
         ['query'],
       ),
+    'getAllUsers' : IDL.Func([], [IDL.Vec(UserEntry)], ['query']),
     'getAssessment' : IDL.Func(
         [AssessmentId],
         [IDL.Opt(Assessment)],
@@ -479,6 +492,7 @@ export const idlFactory = ({ IDL }) => {
         [PostureAssessmentReport],
         [],
       ),
+    'removeUser' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitPostureAssessment' : IDL.Func(
         [PostureAssessmentInput],

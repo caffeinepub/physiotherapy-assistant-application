@@ -120,6 +120,11 @@ export interface TreatmentPlan {
   'goals' : string,
   'interventions' : Array<string>,
 }
+export interface UserEntry {
+  'principal' : Principal,
+  'role' : UserRole,
+  'profile' : [] | [UserProfile],
+}
 export interface UserProfile {
   'name' : string,
   'credentials' : string,
@@ -174,6 +179,7 @@ export interface _SERVICE {
     [],
     Array<ProvisionalPhysioImpression>
   >,
+  'getAllUsers' : ActorMethod<[], Array<UserEntry>>,
   'getAssessment' : ActorMethod<[AssessmentId], [] | [Assessment]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -197,6 +203,7 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'processPostureImage' : ActorMethod<[ExternalBlob], PostureAssessmentReport>,
+  'removeUser' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitPostureAssessment' : ActorMethod<
     [PostureAssessmentInput],

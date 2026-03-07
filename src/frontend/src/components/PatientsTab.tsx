@@ -1,13 +1,90 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronRight, Plus, Search, User } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PatientProfile } from "../backend";
 import AddPatientDialog from "./AddPatientDialog";
 
 interface PatientsTabProps {
   patients: PatientProfile[];
   onSelectPatient: (patientId: string) => void;
+}
+
+interface TiltCardProps {
+  patient: PatientProfile;
+  idx: number;
+  onSelectPatient: (id: string) => void;
+}
+
+function TiltCard({ patient, idx, onSelectPatient }: TiltCardProps) {
+  const cardRef = useRef<HTMLButtonElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = ((e.clientX - cx) / (rect.width / 2)) * 6;
+    const dy = ((e.clientY - cy) / (rect.height / 2)) * 6;
+    card.style.transform = `perspective(800px) rotateX(${-dy}deg) rotateY(${dx}deg) translateY(-3px)`;
+    card.style.boxShadow = `
+      0 0 0 1px oklch(0.9 0.02 220 / 0.06) inset,
+      0 ${4 + Math.abs(dy)}px ${16 + Math.abs(dy) * 2}px oklch(0.05 0.05 240 / 0.7),
+      0 0 32px oklch(0.72 0.17 195 / 0.18)
+    `;
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = "";
+    card.style.boxShadow = "";
+  };
+
+  const initials =
+    `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`.toUpperCase();
+
+  return (
+    <button
+      ref={cardRef}
+      type="button"
+      key={patient.id}
+      data-ocid={`patients.list.item.${idx + 1}`}
+      onClick={() => onSelectPatient(patient.id)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="card-3d group w-full rounded-2xl p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.72_0.17_195/0.6)]"
+      style={{
+        animation: "fade-slide-in 0.4s ease forwards",
+        animationDelay: `${idx * 0.05}s`,
+        opacity: 0,
+        transition: "transform 0.15s ease, box-shadow 0.15s ease",
+        willChange: "transform",
+      }}
+    >
+      <div className="flex items-center gap-4">
+        {/* Avatar */}
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl icon-glow-teal font-display text-base font-bold text-[oklch(0.72_0.17_195)]">
+          {initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-base font-semibold text-foreground">
+            {patient.firstName} {patient.lastName}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {patient.gender} &bull; DOB: {patient.dateOfBirth}
+          </p>
+          {patient.activityGoals && (
+            <p className="mt-1.5 line-clamp-1 text-xs text-muted-foreground">
+              {patient.activityGoals}
+            </p>
+          )}
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[oklch(0.72_0.17_195)]" />
+      </div>
+    </button>
+  );
 }
 
 export default function PatientsTab({
@@ -36,7 +113,17 @@ export default function PatientsTab({
             placeholder="Search patients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-xl border-[oklch(0.72_0.17_195/0.2)] bg-[oklch(0.17_0.03_240/0.8)] pl-10 backdrop-blur focus:border-[oklch(0.72_0.17_195/0.5)] focus:ring-[oklch(0.72_0.17_195/0.3)]"
+            className="rounded-xl border-[oklch(0.72_0.17_195/0.2)] bg-[oklch(0.17_0.03_240/0.8)] pl-10 backdrop-blur transition-all duration-200 focus:border-[oklch(0.72_0.17_195/0.5)]"
+            style={{
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.boxShadow =
+                "0 0 0 2px oklch(0.72 0.17 195 / 0.5), 0 0 20px oklch(0.72 0.17 195 / 0.3)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.boxShadow = "";
+            }}
           />
         </div>
         <Button
@@ -79,40 +166,14 @@ export default function PatientsTab({
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPatients.map((patient, idx) => {
-            const initials =
-              `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`.toUpperCase();
-            return (
-              <button
-                type="button"
-                key={patient.id}
-                data-ocid={`patients.list.item.${idx + 1}`}
-                onClick={() => onSelectPatient(patient.id)}
-                className="card-3d group w-full rounded-2xl p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.72_0.17_195/0.6)]"
-              >
-                <div className="flex items-center gap-4">
-                  {/* Avatar */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl icon-glow-teal font-display text-base font-bold text-[oklch(0.72_0.17_195)]">
-                    {initials}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-display text-base font-semibold text-foreground">
-                      {patient.firstName} {patient.lastName}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {patient.gender} &bull; DOB: {patient.dateOfBirth}
-                    </p>
-                    {patient.activityGoals && (
-                      <p className="mt-1.5 line-clamp-1 text-xs text-muted-foreground">
-                        {patient.activityGoals}
-                      </p>
-                    )}
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[oklch(0.72_0.17_195)]" />
-                </div>
-              </button>
-            );
-          })}
+          {filteredPatients.map((patient, idx) => (
+            <TiltCard
+              key={patient.id}
+              patient={patient}
+              idx={idx}
+              onSelectPatient={onSelectPatient}
+            />
+          ))}
         </div>
       )}
 

@@ -1,3 +1,4 @@
+import type { Principal } from "@icp-sdk/core/principal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
@@ -10,8 +11,10 @@ import type {
   PostureAssessmentReport,
   ProvisionalPhysioImpression,
   TreatmentPlan,
+  UserEntry,
   UserProfile,
 } from "../backend";
+import { UserRole } from "../backend";
 import type { ExternalBlob } from "../backend";
 import { useActor } from "./useActor";
 
@@ -290,6 +293,81 @@ export function useCalculateClinicalScale() {
     }) => {
       if (!actor) throw new Error("Actor not available");
       return actor.calculateClinicalScaleScore(scaleName, responses);
+    },
+  });
+}
+
+// Caller Role Query
+export function useGetCallerUserRole() {
+  const { actor, isFetching } = useActor();
+  return useQuery<UserRole>({
+    queryKey: ["callerUserRole"],
+    queryFn: async () => {
+      if (!actor) return UserRole.guest;
+      return actor.getCallerUserRole();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// Access Management Queries
+export function useIsCallerAdmin() {
+  const { actor, isFetching } = useActor();
+  return useQuery<boolean>({
+    queryKey: ["isCallerAdmin"],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllUsers() {
+  const { actor, isFetching } = useActor();
+  return useQuery<UserEntry[]>({
+    queryKey: ["allUsers"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllUsers();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useAssignUserRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ user, role }: { user: Principal; role: UserRole }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.assignCallerUserRole(user, role);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+      const action = variables.role === UserRole.guest ? "blocked" : "restored";
+      toast.success(`User ${action} successfully`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update user role: ${error.message}`);
+    },
+  });
+}
+
+export function useRemoveUser() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (user: Principal) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.removeUser(user);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+      toast.success("User removed successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to remove user: ${error.message}`);
     },
   });
 }

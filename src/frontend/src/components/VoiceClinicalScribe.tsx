@@ -242,12 +242,46 @@ function RecordingDot() {
   );
 }
 
+// ─── Waveform Visualizer ─────────────────────────────────────────────────────
+const barStyle = (
+  active: boolean,
+  height: number,
+  delay: number,
+): React.CSSProperties => ({
+  width: "3px",
+  height: active ? `${height * 32}px` : "4px",
+  background: active
+    ? `oklch(0.72 0.17 195 / ${0.5 + height * 0.5})`
+    : "oklch(0.4 0.05 240 / 0.4)",
+  animation: active
+    ? `waveform-bar 0.8s ease-in-out ${delay}s infinite`
+    : "none",
+  transformOrigin: "center",
+  borderRadius: "9999px",
+  transition: "all 0.3s",
+});
+
+function WaveformVisualizer({ active }: { active: boolean }) {
+  return (
+    <div className="flex items-center justify-center gap-1 h-8">
+      <div style={barStyle(active, 0.7, 0)} />
+      <div style={barStyle(active, 1.0, 0.1)} />
+      <div style={barStyle(active, 0.55, 0.2)} />
+      <div style={barStyle(active, 0.9, 0.05)} />
+      <div style={barStyle(active, 0.65, 0.15)} />
+      <div style={barStyle(active, 0.85, 0.25)} />
+      <div style={barStyle(active, 0.5, 0.08)} />
+    </div>
+  );
+}
+
 // ─── SOAP Section Card ────────────────────────────────────────────────────────
 interface SoapSectionProps {
   label: string;
   content: string;
   accentColor: string;
   borderColor: string;
+  glowColor: string;
   icon: string;
 }
 
@@ -256,6 +290,7 @@ function SoapSection({
   content,
   accentColor,
   borderColor,
+  glowColor,
   icon,
 }: SoapSectionProps) {
   return (
@@ -264,7 +299,7 @@ function SoapSection({
       style={{
         background: "oklch(0.17 0.03 240 / 0.8)",
         border: `1px solid ${borderColor}`,
-        boxShadow: `0 0 16px ${borderColor.replace("0.4)", "0.08)")}`,
+        boxShadow: `0 0 24px ${glowColor}`,
       }}
     >
       <div className="mb-2 flex items-center gap-2">
@@ -361,13 +396,9 @@ export default function VoiceClinicalScribe() {
     };
 
     recognition.onend = () => {
-      // If we're still supposed to be recording (e.g. browser auto-stopped),
-      // restart to maintain continuous recording
       if (recognitionRef.current === recognition) {
-        // Check if we intentionally stopped
         setRecordingState((prev) => {
           if (prev === "recording") {
-            // Auto-restart
             try {
               recognition.start();
             } catch {
@@ -390,7 +421,6 @@ export default function VoiceClinicalScribe() {
 
   const stopRecording = useCallback(() => {
     if (!recognitionRef.current) return;
-    // Mark as stopped before calling stop() so onend doesn't restart
     recognitionRef.current.onend = null;
     recognitionRef.current.stop();
     recognitionRef.current = null;
@@ -479,7 +509,13 @@ export default function VoiceClinicalScribe() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-xl font-bold text-foreground">
+          <h2
+            className="font-display text-xl font-bold bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, oklch(0.85 0.12 195) 0%, oklch(0.72 0.17 195) 50%, oklch(0.68 0.2 250) 100%)",
+            }}
+          >
             Voice Clinical Scribe
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -512,7 +548,7 @@ export default function VoiceClinicalScribe() {
 
       {/* Microphone Control Panel */}
       <div
-        className="card-3d flex flex-col items-center justify-center rounded-3xl py-10"
+        className="card-3d flex flex-col items-center justify-center rounded-3xl py-10 gap-6"
         style={{
           background: isRecording ? "oklch(0.18 0.04 190 / 0.6)" : undefined,
           border: isRecording
@@ -523,8 +559,8 @@ export default function VoiceClinicalScribe() {
             : undefined,
         }}
       >
-        {/* Big mic button */}
-        <div className="relative mb-6 flex items-center justify-center">
+        {/* 3D Mic sphere */}
+        <div className="relative flex items-center justify-center">
           {/* Animated ping rings when recording */}
           {isRecording && (
             <>
@@ -555,6 +591,7 @@ export default function VoiceClinicalScribe() {
             </>
           )}
 
+          {/* 3D sphere button */}
           <button
             type="button"
             data-ocid={
@@ -567,14 +604,14 @@ export default function VoiceClinicalScribe() {
             className="relative z-10 flex h-28 w-28 items-center justify-center rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.72_0.17_195)] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             style={{
               background: isRecording
-                ? "linear-gradient(135deg, oklch(0.72 0.17 195 / 0.25) 0%, oklch(0.65 0.15 195 / 0.35) 100%)"
-                : "linear-gradient(135deg, oklch(0.72 0.17 195 / 0.15) 0%, oklch(0.65 0.15 195 / 0.25) 100%)",
+                ? "radial-gradient(circle at 35% 35%, oklch(0.85 0.2 195 / 0.6) 0%, oklch(0.72 0.17 195 / 0.4) 40%, oklch(0.50 0.12 200 / 0.5) 100%)"
+                : "radial-gradient(circle at 35% 35%, oklch(0.80 0.15 200 / 0.3) 0%, oklch(0.65 0.15 195 / 0.2) 40%, oklch(0.40 0.08 205 / 0.3) 100%)",
               border: isRecording
                 ? "2px solid oklch(0.72 0.17 195 / 0.7)"
                 : "2px solid oklch(0.72 0.17 195 / 0.35)",
               boxShadow: isRecording
-                ? "0 0 32px oklch(0.72 0.17 195 / 0.5), 0 0 64px oklch(0.72 0.17 195 / 0.25), 0 8px 24px oklch(0.05 0.05 240 / 0.6)"
-                : "0 0 16px oklch(0.72 0.17 195 / 0.2), 0 8px 24px oklch(0.05 0.05 240 / 0.4)",
+                ? "0 0 32px oklch(0.72 0.17 195 / 0.5), 0 0 64px oklch(0.72 0.17 195 / 0.25), 0 8px 24px oklch(0.05 0.05 240 / 0.6), inset 0 1px 0 oklch(0.9 0.1 200 / 0.3)"
+                : "0 0 16px oklch(0.72 0.17 195 / 0.2), 0 8px 24px oklch(0.05 0.05 240 / 0.4), inset 0 1px 0 oklch(0.9 0.05 210 / 0.2)",
             }}
           >
             {isRecording ? (
@@ -585,31 +622,36 @@ export default function VoiceClinicalScribe() {
           </button>
         </div>
 
-        {/* Status text */}
-        <div className="flex items-center gap-2">
-          {isRecording && <RecordingDot />}
-          <span
-            className="text-sm font-semibold"
-            style={{
-              color: isRecording
-                ? "oklch(0.72 0.17 195)"
-                : "oklch(0.58 0.02 230)",
-            }}
-          >
-            {isRecording
-              ? "Recording… speak your clinical notes"
-              : isStopped
-                ? "Recording complete — SOAP note generated below"
-                : "Press the microphone to begin voice dictation"}
-          </span>
-        </div>
+        {/* Waveform visualizer */}
+        <WaveformVisualizer active={isRecording} />
 
-        {/* Live interim text */}
-        {isRecording && interimText && (
-          <p className="mt-3 max-w-lg px-4 text-center font-mono text-xs italic text-[oklch(0.60_0.05_200)]">
-            {interimText}
-          </p>
-        )}
+        {/* Status text */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2">
+            {isRecording && <RecordingDot />}
+            <span
+              className="text-sm font-semibold"
+              style={{
+                color: isRecording
+                  ? "oklch(0.72 0.17 195)"
+                  : "oklch(0.58 0.02 230)",
+              }}
+            >
+              {isRecording
+                ? "Recording… speak your clinical notes"
+                : isStopped
+                  ? "Recording complete — SOAP note generated below"
+                  : "Press the microphone to begin voice dictation"}
+            </span>
+          </div>
+
+          {/* Live interim text */}
+          {isRecording && interimText && (
+            <p className="max-w-lg px-4 text-center font-mono text-xs italic text-[oklch(0.60_0.05_200)]">
+              {interimText}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Live Transcript */}
@@ -642,7 +684,13 @@ export default function VoiceClinicalScribe() {
       {isStopped && soapNote && (
         <div data-ocid="voice_scribe.soap_note.panel" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg font-bold text-foreground">
+            <h3
+              className="font-display text-lg font-bold bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, oklch(0.85 0.12 195) 0%, oklch(0.72 0.17 195) 100%)",
+              }}
+            >
               Formatted SOAP Note
             </h3>
             <Button
@@ -685,6 +733,7 @@ export default function VoiceClinicalScribe() {
               content={soapNote.subjective}
               accentColor="oklch(0.72 0.17 195)"
               borderColor="oklch(0.72 0.17 195 / 0.4)"
+              glowColor="oklch(0.72 0.17 195 / 0.1)"
             />
             <SoapSection
               label="Objective"
@@ -692,6 +741,7 @@ export default function VoiceClinicalScribe() {
               content={soapNote.objective}
               accentColor="oklch(0.68 0.20 250)"
               borderColor="oklch(0.68 0.20 250 / 0.4)"
+              glowColor="oklch(0.68 0.20 250 / 0.1)"
             />
             <SoapSection
               label="Assessment"
@@ -699,6 +749,7 @@ export default function VoiceClinicalScribe() {
               content={soapNote.assessment}
               accentColor="oklch(0.75 0.20 300)"
               borderColor="oklch(0.75 0.20 300 / 0.4)"
+              glowColor="oklch(0.75 0.20 300 / 0.1)"
             />
             <SoapSection
               label="Plan"
@@ -706,6 +757,7 @@ export default function VoiceClinicalScribe() {
               content={soapNote.plan}
               accentColor="oklch(0.68 0.18 155)"
               borderColor="oklch(0.68 0.18 155 / 0.4)"
+              glowColor="oklch(0.68 0.18 155 / 0.1)"
             />
           </div>
 

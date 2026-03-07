@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertTriangle,
+  Brain,
   ChevronDown,
   ChevronUp,
   Clock,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import type { Assessment, PatientProfile } from "../backend";
 import {
   CATEGORY_CONFIG,
   type TherapyModality,
@@ -37,9 +39,13 @@ import {
 } from "../data/therapyModalities";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useAddTreatmentPlan } from "../hooks/useQueries";
+import type { TherapySuggestionContext } from "../utils/therapySuggestionEngine";
+import AISuggestionPanel from "./AISuggestionPanel";
 
 interface TherapyModalitiesTabProps {
   patientId: string;
+  assessments?: Assessment[];
+  patient?: PatientProfile | null;
 }
 
 type CategoryFilter =
@@ -492,11 +498,43 @@ function TherapyCard({ modality, index, onPrescribe }: TherapyCardProps) {
 
 export default function TherapyModalitiesTab({
   patientId,
+  assessments,
+  patient,
 }: TherapyModalitiesTabProps) {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [prescribeModality, setPrescribeModality] =
     useState<TherapyModality | null>(null);
+  const [showAIPanel, setShowAIPanel] = useState(true);
+
+  // Build AI suggestion context from available assessment data
+  const aiContext: TherapySuggestionContext = {
+    chiefComplaint: assessments?.[0]?.subjectiveHistory?.chiefComplaint ?? "",
+    bodyPart: "",
+    domain: "",
+    painScore: (() => {
+      const scale = assessments?.[0]?.clinicalScales?.find(
+        (s) =>
+          s.name.toLowerCase().includes("vas") ||
+          s.name.toLowerCase().includes("nprs"),
+      );
+      return scale ? Number(scale.score) : 5;
+    })(),
+    functionalLimitations:
+      assessments?.[0]?.subjectiveHistory?.functionalLimitations ?? "",
+    redFlags: assessments?.[0]?.redFlags ?? [],
+    clinicalScaleNames:
+      assessments?.[0]?.clinicalScales?.map((s) => s.name) ?? [],
+    postureDeviations: [],
+    medicalHistory: patient?.medicalHistory ?? "",
+  };
+
+  const handleAIPrescribe = (therapyId: string) => {
+    const modality = therapyModalities.find((m) => m.id === therapyId);
+    if (modality) {
+      setPrescribeModality(modality);
+    }
+  };
 
   const categories: CategoryFilter[] = [
     "All",
@@ -522,10 +560,95 @@ export default function TherapyModalitiesTab({
 
   return (
     <div className="space-y-6">
+      {/* AI Recommendations toggle header */}
+      <div className="flex flex-col gap-4">
+        {/* Section toggle button */}
+        <button
+          type="button"
+          data-ocid="ai.suggest.toggle"
+          onClick={() => setShowAIPanel((v) => !v)}
+          className="flex items-center justify-between w-full rounded-2xl px-5 py-3.5 text-left transition-all"
+          style={{
+            background: showAIPanel
+              ? "oklch(0.72 0.17 195 / 0.08)"
+              : "oklch(0.20 0.03 240 / 0.5)",
+            border: showAIPanel
+              ? "1px solid oklch(0.72 0.17 195 / 0.3)"
+              : "1px solid oklch(0.4 0.04 240 / 0.25)",
+            boxShadow: showAIPanel
+              ? "0 0 20px oklch(0.72 0.17 195 / 0.1)"
+              : "none",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-xl"
+              style={{
+                background: "oklch(0.72 0.17 195 / 0.12)",
+                border: "1px solid oklch(0.72 0.17 195 / 0.3)",
+              }}
+            >
+              <Brain className="h-4 w-4 text-[oklch(0.85_0.12_195)]" />
+            </div>
+            <div>
+              <span
+                className="font-display text-sm font-bold bg-clip-text text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, oklch(0.92 0.08 195) 0%, oklch(0.72 0.17 195) 60%, oklch(0.68 0.20 250) 100%)",
+                }}
+              >
+                AI Recommendations
+              </span>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Personalised therapy suggestions based on patient profile
+              </p>
+            </div>
+          </div>
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded-lg transition-transform"
+            style={{
+              background: "oklch(0.20 0.03 240 / 0.6)",
+              border: "1px solid oklch(0.4 0.04 240 / 0.3)",
+              transform: showAIPanel ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          >
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </button>
+
+        {/* AI Panel collapsible */}
+        <AnimatePresence>
+          {showAIPanel && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              style={{ overflow: "hidden" }}
+            >
+              <AISuggestionPanel
+                context={aiContext}
+                onPrescribe={handleAIPrescribe}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Divider */}
+      <div className="divider-glow" />
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-display text-xl font-bold text-foreground">
+          <h2
+            className="font-display text-xl font-bold bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, oklch(0.85 0.12 195) 0%, oklch(0.72 0.17 195) 40%, oklch(0.68 0.2 250) 100%)",
+            }}
+          >
             Therapy Modalities
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">

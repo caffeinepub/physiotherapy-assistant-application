@@ -76,6 +76,11 @@ export interface Assessment {
     subjectiveHistory: SubjectiveHistory;
     objectiveTest: ObjectiveTest;
 }
+export interface UserEntry {
+    principal: Principal;
+    role: UserRole;
+    profile?: UserProfile;
+}
 export interface PostureAssessmentReport {
     correctiveFocusAreas: Array<string>;
     deviations: Array<Deviation>;
@@ -143,6 +148,7 @@ export interface backendInterface {
     generateProvisionalPhysioImpression(patientId: PatientId, functionalDifficulties: Array<string>, observedDeviations: Array<string>): Promise<ProvisionalPhysioImpression>;
     getAllPatients(): Promise<Array<PatientProfile>>;
     getAllProvisionalImpressions(): Promise<Array<ProvisionalPhysioImpression>>;
+    getAllUsers(): Promise<Array<UserEntry>>;
     getAssessment(assessmentId: AssessmentId): Promise<Assessment | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -160,6 +166,7 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     processPostureImage(image: ExternalBlob): Promise<PostureAssessmentReport>;
+    removeUser(user: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitPostureAssessment(input: PostureAssessmentInput): Promise<PostureAssessmentReport>;
 }

@@ -26,6 +26,9 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
     <div
       data-ocid="assessment.card"
       className="card-3d rounded-2xl overflow-hidden"
+      style={{
+        animation: "fade-slide-in 0.4s ease forwards",
+      }}
     >
       {/* Card header */}
       <div className="flex items-start justify-between px-5 pt-5 pb-3">
@@ -44,14 +47,25 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
           </div>
         </div>
         {hasRedFlags && (
-          <Badge
-            variant="destructive"
-            className="gap-1 rounded-lg text-xs font-semibold"
+          <div
+            className="animate-pulse"
+            style={{
+              animation: "glow-pulse 2s ease-in-out infinite",
+            }}
           >
-            <AlertTriangle className="h-3 w-3" />
-            {assessment.redFlags.length} Red Flag
-            {assessment.redFlags.length > 1 ? "s" : ""}
-          </Badge>
+            <Badge
+              variant="destructive"
+              className="gap-1 rounded-lg text-xs font-semibold"
+              style={{
+                boxShadow:
+                  "0 0 12px oklch(0.62 0.22 25 / 0.4), 0 0 24px oklch(0.62 0.22 25 / 0.2)",
+              }}
+            >
+              <AlertTriangle className="h-3 w-3" />
+              {assessment.redFlags.length} Red Flag
+              {assessment.redFlags.length > 1 ? "s" : ""}
+            </Badge>
+          </div>
         )}
       </div>
 
@@ -63,7 +77,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem
             value="subjective"
-            className="border-b border-[oklch(0.72_0.17_195/0.1)]"
+            className="border-b border-[oklch(0.72_0.17_195/0.1)] data-[state=open]:border-l-2 data-[state=open]:border-l-[oklch(0.72_0.17_195/0.6)] data-[state=open]:pl-2 transition-all duration-200"
           >
             <AccordionTrigger
               data-ocid="assessment.subjective.toggle"
@@ -117,7 +131,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
 
           <AccordionItem
             value="objective"
-            className="border-b border-[oklch(0.72_0.17_195/0.1)]"
+            className="border-b border-[oklch(0.72_0.17_195/0.1)] data-[state=open]:border-l-2 data-[state=open]:border-l-[oklch(0.68_0.20_250/0.6)] data-[state=open]:pl-2 transition-all duration-200"
           >
             <AccordionTrigger
               data-ocid="assessment.objective.toggle"
@@ -165,7 +179,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
           {assessment.clinicalScales.length > 0 && (
             <AccordionItem
               value="scales"
-              className="border-b border-[oklch(0.72_0.17_195/0.1)]"
+              className="border-b border-[oklch(0.72_0.17_195/0.1)] data-[state=open]:border-l-2 data-[state=open]:border-l-[oklch(0.68_0.18_155/0.6)] data-[state=open]:pl-2 transition-all duration-200"
             >
               <AccordionTrigger
                 data-ocid="assessment.scales.toggle"
@@ -199,7 +213,10 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
           )}
 
           {assessment.redFlags.length > 0 && (
-            <AccordionItem value="redflags" className="border-none">
+            <AccordionItem
+              value="redflags"
+              className="border-none data-[state=open]:border-l-2 data-[state=open]:border-l-[oklch(0.62_0.22_25/0.7)] data-[state=open]:pl-2 transition-all duration-200"
+            >
               <AccordionTrigger
                 data-ocid="assessment.redflags.toggle"
                 className="py-3 text-sm font-semibold text-destructive hover:no-underline"
