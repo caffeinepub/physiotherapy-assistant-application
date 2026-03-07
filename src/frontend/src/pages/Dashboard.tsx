@@ -135,7 +135,7 @@ function useScrollReveal() {
 }
 
 // Demo data shown when in demo mode (matches PatientProfile shape)
-const DEMO_PATIENTS = [
+const DEMO_PATIENTS: import("../backend").PatientProfile[] = [
   {
     id: "demo-1",
     firstName: "Ahmed",

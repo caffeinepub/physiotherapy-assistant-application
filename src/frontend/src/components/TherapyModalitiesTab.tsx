@@ -508,13 +508,16 @@ export default function TherapyModalitiesTab({
     useState<TherapyModality | null>(null);
   const [showAIPanel, setShowAIPanel] = useState(true);
 
+  // Safely default assessments to empty array
+  const safeAssessments = assessments ?? [];
+
   // Build AI suggestion context from available assessment data
   const aiContext: TherapySuggestionContext = {
-    chiefComplaint: assessments?.[0]?.subjectiveHistory?.chiefComplaint ?? "",
+    chiefComplaint: safeAssessments[0]?.subjectiveHistory?.chiefComplaint ?? "",
     bodyPart: "",
     domain: "",
     painScore: (() => {
-      const scale = assessments?.[0]?.clinicalScales?.find(
+      const scale = safeAssessments[0]?.clinicalScales?.find(
         (s) =>
           s.name.toLowerCase().includes("vas") ||
           s.name.toLowerCase().includes("nprs"),
@@ -522,10 +525,10 @@ export default function TherapyModalitiesTab({
       return scale ? Number(scale.score) : 5;
     })(),
     functionalLimitations:
-      assessments?.[0]?.subjectiveHistory?.functionalLimitations ?? "",
-    redFlags: assessments?.[0]?.redFlags ?? [],
+      safeAssessments[0]?.subjectiveHistory?.functionalLimitations ?? "",
+    redFlags: safeAssessments[0]?.redFlags ?? [],
     clinicalScaleNames:
-      assessments?.[0]?.clinicalScales?.map((s) => s.name) ?? [],
+      safeAssessments[0]?.clinicalScales?.map((s) => s.name) ?? [],
     postureDeviations: [],
     medicalHistory: patient?.medicalHistory ?? "",
   };

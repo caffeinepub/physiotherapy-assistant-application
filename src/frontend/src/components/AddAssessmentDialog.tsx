@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle, Check, Loader2, Mic, MicOff, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import type {
   ClinicalScale,
   PostureAssessmentReport,
@@ -541,7 +542,10 @@ export default function AddAssessmentDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!identity) return;
+    if (!identity) {
+      toast.error("Please log in to save an assessment.");
+      return;
+    }
 
     const redFlagsArray = redFlags
       .split("\n")

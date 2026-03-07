@@ -13,7 +13,9 @@ interface TreatmentPlanCardProps {
 }
 
 export default function TreatmentPlanCard({ plan }: TreatmentPlanCardProps) {
-  const date = new Date(Number(plan.dateCreated) / 1000000);
+  const date = plan.dateCreated
+    ? new Date(Number(plan.dateCreated) / 1000000)
+    : new Date();
 
   return (
     <div
@@ -28,7 +30,7 @@ export default function TreatmentPlanCard({ plan }: TreatmentPlanCardProps) {
           </div>
           <div>
             <p className="font-display text-base font-semibold text-foreground">
-              {plan.diagnosis}
+              {plan.diagnosis || "Treatment Plan"}
             </p>
             <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3" />
@@ -107,64 +109,67 @@ export default function TreatmentPlanCard({ plan }: TreatmentPlanCardProps) {
             </AccordionItem>
           )}
 
-          {plan.interventions.length > 0 && (
-            <AccordionItem
-              value="interventions"
-              className="border-b border-[oklch(0.68_0.18_155/0.1)]"
-            >
-              <AccordionTrigger
-                data-ocid="plan.interventions.toggle"
-                className="py-3 text-sm font-semibold hover:no-underline"
+          {Array.isArray(plan.interventions) &&
+            plan.interventions.length > 0 && (
+              <AccordionItem
+                value="interventions"
+                className="border-b border-[oklch(0.68_0.18_155/0.1)]"
               >
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-[oklch(0.78_0.18_75)]" />
-                  Interventions ({plan.interventions.length})
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-3">
-                <ul className="space-y-1.5">
-                  {plan.interventions.map((intervention, idx) => (
-                    <li
-                      key={intervention}
-                      className="flex items-start gap-2 rounded-lg border border-[oklch(0.78_0.18_75/0.15)] bg-[oklch(0.78_0.18_75/0.06)] px-3 py-2 text-sm text-foreground"
-                    >
-                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[oklch(0.78_0.18_75/0.2)] text-[10px] font-bold text-[oklch(0.78_0.18_75)]">
-                        {idx + 1}
-                      </span>
-                      {intervention}
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+                <AccordionTrigger
+                  data-ocid="plan.interventions.toggle"
+                  className="py-3 text-sm font-semibold hover:no-underline"
+                >
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-[oklch(0.78_0.18_75)]" />
+                    Interventions ({plan.interventions?.length ?? 0})
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  <ul className="space-y-1.5">
+                    {plan.interventions.map((intervention, idx) => (
+                      <li
+                        key={intervention}
+                        className="flex items-start gap-2 rounded-lg border border-[oklch(0.78_0.18_75/0.15)] bg-[oklch(0.78_0.18_75/0.06)] px-3 py-2 text-sm text-foreground"
+                      >
+                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[oklch(0.78_0.18_75/0.2)] text-[10px] font-bold text-[oklch(0.78_0.18_75)]">
+                          {idx + 1}
+                        </span>
+                        {intervention}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {plan.recommendations.length > 0 && (
-            <AccordionItem value="recommendations" className="border-none">
-              <AccordionTrigger
-                data-ocid="plan.recommendations.toggle"
-                className="py-3 text-sm font-semibold hover:no-underline"
-              >
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-[oklch(0.68_0.20_250)]" />
-                  Evidence-Based Recommendations ({plan.recommendations.length})
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-3">
-                <ul className="space-y-1.5">
-                  {plan.recommendations.map((recommendation) => (
-                    <li
-                      key={recommendation}
-                      className="flex items-start gap-2 rounded-lg border border-[oklch(0.68_0.20_250/0.15)] bg-[oklch(0.68_0.20_250/0.06)] px-3 py-2 text-sm text-foreground"
-                    >
-                      <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[oklch(0.68_0.20_250)]" />
-                      {recommendation}
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+          {Array.isArray(plan.recommendations) &&
+            plan.recommendations.length > 0 && (
+              <AccordionItem value="recommendations" className="border-none">
+                <AccordionTrigger
+                  data-ocid="plan.recommendations.toggle"
+                  className="py-3 text-sm font-semibold hover:no-underline"
+                >
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-[oklch(0.68_0.20_250)]" />
+                    Evidence-Based Recommendations (
+                    {plan.recommendations?.length ?? 0})
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  <ul className="space-y-1.5">
+                    {plan.recommendations.map((recommendation) => (
+                      <li
+                        key={recommendation}
+                        className="flex items-start gap-2 rounded-lg border border-[oklch(0.68_0.20_250/0.15)] bg-[oklch(0.68_0.20_250/0.06)] px-3 py-2 text-sm text-foreground"
+                      >
+                        <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[oklch(0.68_0.20_250)]" />
+                        {recommendation}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            )}
         </Accordion>
       </div>
     </div>

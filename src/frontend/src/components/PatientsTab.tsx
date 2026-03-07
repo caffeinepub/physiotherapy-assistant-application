@@ -97,8 +97,8 @@ export default function PatientsTab({
   const filteredPatients = patients.filter((patient) => {
     const query = searchQuery.toLowerCase();
     return (
-      patient.firstName.toLowerCase().includes(query) ||
-      patient.lastName.toLowerCase().includes(query)
+      (patient.firstName ?? "").toLowerCase().includes(query) ||
+      (patient.lastName ?? "").toLowerCase().includes(query)
     );
   });
 

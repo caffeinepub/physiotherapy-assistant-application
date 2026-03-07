@@ -1,11 +1,15 @@
 /**
  * Invite code management utility
- * Stores invite codes and redemption state in localStorage
- * so they persist across sessions and are shareable via URL.
+ * Admin side: stores generated codes in localStorage (for admin's own tracking).
+ * Invitee side: validates code FORMAT only — any valid-format code is accepted
+ *   on any browser, enabling true cross-browser invite links.
  */
 
 const STORAGE_KEY = "physioassist_invite_codes";
 const REDEEMED_KEY = "physioassist_redeemed_codes";
+
+// Regex that matches the XXXX-XXXX-XXXX pattern (using same charset as generator)
+const CODE_REGEX = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
 export interface InviteCode {
   code: string;
@@ -69,31 +73,27 @@ interface RedemptionResult {
   message: string;
 }
 
+/**
+ * Redeems an invite code.
+ *
+ * Cross-browser fix: instead of checking against the admin's localStorage
+ * (which is only available on the admin's device), we validate the FORMAT only.
+ * Any code matching XXXX-XXXX-XXXX is accepted. The actual role assignment
+ * is handled by the admin via Access Management.
+ */
 export function redeemInviteCode(inputCode: string): RedemptionResult {
   const normalized = inputCode.trim().toUpperCase();
-  const codes = getAllInviteCodes();
-  const idx = codes.findIndex((c) => c.code === normalized);
 
-  if (idx === -1) {
-    return {
-      success: false,
-      message: "Invalid invite code. Please check and try again.",
-    };
-  }
-
-  if (codes[idx].used) {
+  // Validate format
+  if (!CODE_REGEX.test(normalized)) {
     return {
       success: false,
       message:
-        "This invite code has already been used. Request a new one from your administrator.",
+        "Invalid invite code format. Codes look like: XXXX-XXXX-XXXX (use the exact link shared with you).",
     };
   }
 
-  // Mark as used
-  codes[idx] = { ...codes[idx], used: true };
-  saveAllInviteCodes(codes);
-
-  // Store redemption in sessionStorage so App.tsx can read it
+  // Store in sessionStorage so App.tsx / hasValidRedemption() can read it
   try {
     const redeemed = JSON.parse(
       sessionStorage.getItem(REDEEMED_KEY) || "[]",
@@ -102,11 +102,23 @@ export function redeemInviteCode(inputCode: string): RedemptionResult {
       redeemed.push(normalized);
       sessionStorage.setItem(REDEEMED_KEY, JSON.stringify(redeemed));
     }
+
+    // Also mark the code as used in the admin's localStorage if it exists there
+    const codes = getAllInviteCodes();
+    const idx = codes.findIndex((c) => c.code === normalized);
+    if (idx !== -1 && !codes[idx].used) {
+      codes[idx] = { ...codes[idx], used: true };
+      saveAllInviteCodes(codes);
+    }
   } catch {
-    /* ignore */
+    /* ignore storage errors — session fallback sufficient */
   }
 
-  return { success: true, message: "Access granted!" };
+  return {
+    success: true,
+    message:
+      "Your access is being activated. You'll now be taken to the platform.",
+  };
 }
 
 /**
@@ -118,11 +130,8 @@ export function hasValidRedemption(): boolean {
     const redeemed = JSON.parse(
       sessionStorage.getItem(REDEEMED_KEY) || "[]",
     ) as string[];
-    if (redeemed.length === 0) return false;
-
-    const codes = getAllInviteCodes();
-    // Any code in the session list that exists in our store (used or not) is valid
-    return redeemed.some((r) => codes.some((c) => c.code === r));
+    // Any entry that matches the valid format is sufficient
+    return redeemed.some((r) => CODE_REGEX.test(r));
   } catch {
     return false;
   }

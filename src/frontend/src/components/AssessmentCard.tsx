@@ -19,8 +19,14 @@ interface AssessmentCardProps {
 }
 
 export default function AssessmentCard({ assessment }: AssessmentCardProps) {
-  const date = new Date(Number(assessment.dateCreated) / 1000000);
-  const hasRedFlags = assessment.redFlags.length > 0;
+  const date = assessment.dateCreated
+    ? new Date(Number(assessment.dateCreated) / 1000000)
+    : new Date();
+  const hasRedFlags =
+    Array.isArray(assessment.redFlags) && assessment.redFlags.length > 0;
+  const hasScales =
+    Array.isArray(assessment.clinicalScales) &&
+    assessment.clinicalScales.length > 0;
 
   return (
     <div
@@ -86,7 +92,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
               Subjective History
             </AccordionTrigger>
             <AccordionContent className="space-y-3 pb-3">
-              {assessment.subjectiveHistory.chiefComplaint && (
+              {assessment.subjectiveHistory?.chiefComplaint && (
                 <div className="rounded-xl bg-[oklch(0.20_0.04_238/0.6)] p-3">
                   <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Chief Complaint
@@ -96,7 +102,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
                   </p>
                 </div>
               )}
-              {assessment.subjectiveHistory.onsetHistory && (
+              {assessment.subjectiveHistory?.onsetHistory && (
                 <div>
                   <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Onset History
@@ -106,7 +112,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
                   </p>
                 </div>
               )}
-              {assessment.subjectiveHistory.aggravatingFactors && (
+              {assessment.subjectiveHistory?.aggravatingFactors && (
                 <div>
                   <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Aggravating Factors
@@ -116,13 +122,23 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
                   </p>
                 </div>
               )}
-              {assessment.subjectiveHistory.relievingFactors && (
+              {assessment.subjectiveHistory?.relievingFactors && (
                 <div>
                   <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Relieving Factors
                   </p>
                   <p className="text-sm text-foreground">
                     {assessment.subjectiveHistory.relievingFactors}
+                  </p>
+                </div>
+              )}
+              {assessment.subjectiveHistory?.functionalLimitations && (
+                <div>
+                  <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Functional Limitations
+                  </p>
+                  <p className="text-sm text-foreground">
+                    {assessment.subjectiveHistory.functionalLimitations}
                   </p>
                 </div>
               )}
@@ -143,7 +159,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3 pb-3">
-              {assessment.objectiveTest.rangeOfMotion && (
+              {assessment.objectiveTest?.rangeOfMotion && (
                 <div>
                   <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Range of Motion
@@ -153,7 +169,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
                   </p>
                 </div>
               )}
-              {assessment.objectiveTest.muscleTesting && (
+              {assessment.objectiveTest?.muscleTesting && (
                 <div>
                   <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Muscle Testing
@@ -163,7 +179,27 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
                   </p>
                 </div>
               )}
-              {assessment.objectiveTest.gaitAssessment && (
+              {assessment.objectiveTest?.neurologicalScreening && (
+                <div>
+                  <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Neurological Screening
+                  </p>
+                  <p className="text-sm text-foreground">
+                    {assessment.objectiveTest.neurologicalScreening}
+                  </p>
+                </div>
+              )}
+              {assessment.objectiveTest?.cardiopulmonaryScreening && (
+                <div>
+                  <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Cardiopulmonary Screening
+                  </p>
+                  <p className="text-sm text-foreground">
+                    {assessment.objectiveTest.cardiopulmonaryScreening}
+                  </p>
+                </div>
+              )}
+              {assessment.objectiveTest?.gaitAssessment && (
                 <div>
                   <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Gait Assessment
@@ -173,10 +209,20 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
                   </p>
                 </div>
               )}
+              {assessment.objectiveTest?.balanceAssessment && (
+                <div>
+                  <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Balance Assessment
+                  </p>
+                  <p className="text-sm text-foreground">
+                    {assessment.objectiveTest.balanceAssessment}
+                  </p>
+                </div>
+              )}
             </AccordionContent>
           </AccordionItem>
 
-          {assessment.clinicalScales.length > 0 && (
+          {hasScales && (
             <AccordionItem
               value="scales"
               className="border-b border-[oklch(0.72_0.17_195/0.1)] data-[state=open]:border-l-2 data-[state=open]:border-l-[oklch(0.68_0.18_155/0.6)] data-[state=open]:pl-2 transition-all duration-200"
@@ -187,11 +233,11 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
               >
                 <div className="flex items-center gap-2">
                   <Scale className="h-4 w-4 text-[oklch(0.68_0.18_155)]" />
-                  Clinical Scales ({assessment.clinicalScales.length})
+                  Clinical Scales ({assessment.clinicalScales?.length ?? 0})
                 </div>
               </AccordionTrigger>
               <AccordionContent className="space-y-2 pb-3">
-                {assessment.clinicalScales.map((scale) => (
+                {(assessment.clinicalScales ?? []).map((scale) => (
                   <div
                     key={scale.name}
                     className="rounded-xl border border-[oklch(0.68_0.18_155/0.2)] bg-[oklch(0.68_0.18_155/0.07)] p-3"
@@ -212,7 +258,7 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
             </AccordionItem>
           )}
 
-          {assessment.redFlags.length > 0 && (
+          {hasRedFlags && (
             <AccordionItem
               value="redflags"
               className="border-none data-[state=open]:border-l-2 data-[state=open]:border-l-[oklch(0.62_0.22_25/0.7)] data-[state=open]:pl-2 transition-all duration-200"
@@ -223,12 +269,12 @@ export default function AssessmentCard({ assessment }: AssessmentCardProps) {
               >
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  Red Flags ({assessment.redFlags.length})
+                  Red Flags ({assessment.redFlags?.length ?? 0})
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-3">
                 <ul className="space-y-1.5">
-                  {assessment.redFlags.map((flag) => (
+                  {(assessment.redFlags ?? []).map((flag) => (
                     <li
                       key={flag}
                       className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2 text-sm text-destructive"

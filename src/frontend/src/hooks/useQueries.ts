@@ -17,6 +17,7 @@ import type {
 import { UserRole } from "../backend";
 import type { ExternalBlob } from "../backend";
 import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 // User Profile Queries
 export function useGetCallerUserProfile() {
@@ -61,9 +62,11 @@ export function useSaveCallerUserProfile() {
 // Patient Queries
 export function useGetAllPatients() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principalKey = identity?.getPrincipal().toString() ?? "anon";
 
   return useQuery<PatientProfile[]>({
-    queryKey: ["patients"],
+    queryKey: ["patients", principalKey],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllPatients();
@@ -74,14 +77,17 @@ export function useGetAllPatients() {
 
 export function useGetPatient(patientId: string | null) {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principalKey = identity?.getPrincipal().toString() ?? "anon";
 
   return useQuery<PatientProfile | null>({
-    queryKey: ["patient", patientId],
+    queryKey: ["patient", patientId, principalKey],
     queryFn: async () => {
       if (!actor || !patientId) return null;
       return actor.getPatient(patientId);
     },
     enabled: !!actor && !isFetching && !!patientId,
+    staleTime: 30000,
   });
 }
 
@@ -95,7 +101,10 @@ export function useAddPatient() {
       return actor.addPatient(profile);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      // Invalidate all "patients" queries regardless of principal variant
+      queryClient.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === "patients",
+      });
       toast.success("Patient added successfully");
     },
     onError: (error: Error) => {
@@ -107,14 +116,17 @@ export function useAddPatient() {
 // Assessment Queries
 export function useGetPatientAssessments(patientId: string | null) {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principalKey = identity?.getPrincipal().toString() ?? "anon";
 
   return useQuery<Assessment[]>({
-    queryKey: ["assessments", patientId],
+    queryKey: ["assessments", patientId, principalKey],
     queryFn: async () => {
       if (!actor || !patientId) return [];
       return actor.getPatientAssessments(patientId);
     },
     enabled: !!actor && !isFetching && !!patientId,
+    staleTime: 30000,
   });
 }
 
@@ -129,9 +141,13 @@ export function useAddAssessment() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["assessments", variables.patientId],
+        predicate: (q) =>
+          q.queryKey[0] === "assessments" &&
+          q.queryKey[1] === variables.patientId,
       });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === "dashboard",
+      });
       toast.success("Assessment saved successfully");
     },
     onError: (error: Error) => {
@@ -143,14 +159,17 @@ export function useAddAssessment() {
 // Treatment Plan Queries
 export function useGetPatientTreatmentPlans(patientId: string | null) {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principalKey = identity?.getPrincipal().toString() ?? "anon";
 
   return useQuery<TreatmentPlan[]>({
-    queryKey: ["treatmentPlans", patientId],
+    queryKey: ["treatmentPlans", patientId, principalKey],
     queryFn: async () => {
       if (!actor || !patientId) return [];
       return actor.getPatientTreatmentPlans(patientId);
     },
     enabled: !!actor && !isFetching && !!patientId,
+    staleTime: 30000,
   });
 }
 
@@ -165,9 +184,13 @@ export function useAddTreatmentPlan() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["treatmentPlans", variables.patientId],
+        predicate: (q) =>
+          q.queryKey[0] === "treatmentPlans" &&
+          q.queryKey[1] === variables.patientId,
       });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === "dashboard",
+      });
       toast.success("Treatment plan saved successfully");
     },
     onError: (error: Error) => {
@@ -254,7 +277,9 @@ export function useGenerateProvisionalImpression() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["provisionalImpressions", variables.patientId],
+        predicate: (q) =>
+          q.queryKey[0] === "provisionalImpressions" &&
+          q.queryKey[1] === variables.patientId,
       });
       toast.success("Provisional impression generated successfully");
     },
@@ -268,9 +293,11 @@ export function useGenerateProvisionalImpression() {
 
 export function useGetProvisionalImpressions(patientId: string | null) {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principalKey = identity?.getPrincipal().toString() ?? "anon";
 
   return useQuery<ProvisionalPhysioImpression[]>({
-    queryKey: ["provisionalImpressions", patientId],
+    queryKey: ["provisionalImpressions", patientId, principalKey],
     queryFn: async () => {
       if (!actor || !patientId) return [];
       return actor.getProvisionalImpressions(patientId);
@@ -375,6 +402,8 @@ export function useRemoveUser() {
 // Dashboard Query
 export function useGetDashboard() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const principalKey = identity?.getPrincipal().toString() ?? "anon";
 
   return useQuery<{
     patientCount: bigint;
@@ -382,7 +411,7 @@ export function useGetDashboard() {
     treatmentPlanCount: bigint;
     aiPlanCount: bigint;
   }>({
-    queryKey: ["dashboard"],
+    queryKey: ["dashboard", principalKey],
     queryFn: async () => {
       if (!actor)
         return {

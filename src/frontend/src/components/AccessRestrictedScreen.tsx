@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { redeemInviteCode } from "../utils/inviteCodes";
 
+const AUTO_REDIRECT_DELAY_MS = 2200;
+
 interface AccessRestrictedScreenProps {
   initialCode?: string;
 }
@@ -45,6 +47,10 @@ export default function AccessRestrictedScreen({
       const result = redeemInviteCode(target);
       if (result.success) {
         setStatus("success");
+        // Auto-redirect after a short delay so user sees the success message
+        setTimeout(() => {
+          window.location.reload();
+        }, AUTO_REDIRECT_DELAY_MS);
       } else {
         setStatus("error");
         setErrorMsg(result.message);
@@ -137,8 +143,8 @@ export default function AccessRestrictedScreen({
                   Access Granted!
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Your invite code has been redeemed successfully. Click below
-                  to proceed to the platform.
+                  Your access is being activated. You'll be taken to the
+                  platform momentarily.
                 </p>
               </div>
 
@@ -152,7 +158,7 @@ export default function AccessRestrictedScreen({
                 }}
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Enter PhysioAssist
+                Enter PhysioAssist Now
               </Button>
             </motion.div>
           ) : (

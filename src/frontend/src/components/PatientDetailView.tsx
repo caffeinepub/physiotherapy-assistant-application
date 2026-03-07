@@ -110,7 +110,7 @@ export default function PatientDetailView({
   patientId,
   onBack,
 }: PatientDetailViewProps) {
-  const { data: patient } = useGetPatient(patientId);
+  const { data: patient, isLoading: patientLoading } = useGetPatient(patientId);
   const { data: assessments } = useGetPatientAssessments(patientId);
   const { data: treatmentPlans } = useGetPatientTreatmentPlans(patientId);
   const [showAddAssessment, setShowAddAssessment] = useState(false);
@@ -120,6 +120,7 @@ export default function PatientDetailView({
   const assessmentRevealRef = useScrollReveal();
   const plansRevealRef = useScrollReveal();
 
+  // Early returns MUST come after all hook calls
   if (!patient) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -132,10 +133,56 @@ export default function PatientDetailView({
           <ArrowLeft className="h-4 w-4" />
           Back to Patients
         </Button>
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Activity className="h-4 w-4 animate-spin" />
-          Loading patient information...
-        </div>
+
+        {patientLoading ? (
+          /* Skeleton loading state */
+          <div
+            className="space-y-4 animate-pulse"
+            data-ocid="patient.loading_state"
+          >
+            <div className="h-28 rounded-3xl bg-[oklch(0.20_0.04_238/0.6)]" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-20 rounded-2xl bg-[oklch(0.20_0.04_238/0.5)]"
+                />
+              ))}
+            </div>
+            <div className="h-10 w-96 rounded-2xl bg-[oklch(0.20_0.04_238/0.5)]" />
+            <div className="h-40 rounded-2xl bg-[oklch(0.20_0.04_238/0.4)]" />
+          </div>
+        ) : (
+          /* Not found state */
+          <div
+            data-ocid="patient.error_state"
+            className="card-3d flex flex-col items-center justify-center rounded-3xl py-16 text-center"
+          >
+            <div
+              className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+              style={{
+                background: "oklch(0.62 0.22 25 / 0.1)",
+                border: "1px solid oklch(0.62 0.22 25 / 0.3)",
+              }}
+            >
+              <User className="h-8 w-8 text-[oklch(0.72_0.18_25)]" />
+            </div>
+            <p className="text-base font-semibold text-foreground">
+              Patient not found
+            </p>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              This patient record could not be loaded. It may have been removed
+              or you may not have access.
+            </p>
+            <Button
+              onClick={onBack}
+              className="mt-4 gap-2 rounded-xl bg-[oklch(0.72_0.17_195)] text-[oklch(0.10_0.03_240)]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Patients
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -428,8 +475,8 @@ export default function PatientDetailView({
           <TabsContent value="therapy-modalities" className="space-y-4">
             <TherapyModalitiesTab
               patientId={patientId}
-              assessments={assessments}
-              patient={patient}
+              assessments={assessments ?? []}
+              patient={patient ?? null}
             />
           </TabsContent>
 

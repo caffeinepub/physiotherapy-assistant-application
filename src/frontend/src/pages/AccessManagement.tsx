@@ -301,7 +301,8 @@ interface InviteLinkRowProps {
 function InviteLinkRow({ invite, index, onDelete }: InviteLinkRowProps) {
   const [copied, setCopied] = useState(false);
 
-  const inviteUrl = `${window.location.origin}?code=${invite.code}`;
+  // Build invite URL from origin + pathname (strips any existing query params)
+  const inviteUrl = `${window.location.origin}${window.location.pathname.replace(/\/$/, "")}?code=${invite.code}`;
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(inviteUrl).then(() => {
