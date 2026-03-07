@@ -352,7 +352,12 @@ function InviteLinkRow({ invite, index, onDelete }: InviteLinkRowProps) {
           />
         </div>
         <div className="min-w-0">
-          <p className="font-mono text-sm font-semibold text-foreground">
+          {invite.recipientName ? (
+            <p className="text-sm font-bold text-foreground truncate">
+              {invite.recipientName}
+            </p>
+          ) : null}
+          <p className="font-mono text-xs font-semibold text-muted-foreground">
             {truncatedCode}
           </p>
           <p className="mt-0.5 truncate text-xs text-muted-foreground/60">
@@ -430,16 +435,19 @@ function InviteLinkRow({ invite, index, onDelete }: InviteLinkRowProps) {
 function InviteLinksTab() {
   const [codes, setCodes] = useState<InviteCode[]>(() => getAllInviteCodes());
   const [isGenerating, setIsGenerating] = useState(false);
+  const [recipientName, setRecipientName] = useState("");
 
   const refreshCodes = useCallback(() => {
     setCodes(getAllInviteCodes());
   }, []);
 
   const handleGenerate = async () => {
+    if (!recipientName.trim()) return;
     setIsGenerating(true);
     await new Promise((r) => setTimeout(r, 400));
-    createInviteCode();
+    createInviteCode(recipientName.trim());
     refreshCodes();
+    setRecipientName("");
     setIsGenerating(false);
   };
 
@@ -456,49 +464,65 @@ function InviteLinksTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header row */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="rounded-xl border border-[oklch(0.72_0.17_195/0.2)] bg-[oklch(0.72_0.17_195/0.08)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.80_0.12_195)]">
-            {available} Available
-          </div>
-          <div className="rounded-xl border border-[oklch(0.55_0.05_240/0.2)] bg-[oklch(0.55_0.05_240/0.08)] px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-            {usedCount} Used
-          </div>
-        </div>
-        <Button
-          data-ocid="invite.generate_button"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className="gap-2 rounded-xl bg-[oklch(0.72_0.17_195)] px-4 py-2 text-sm font-semibold text-[oklch(0.10_0.03_240)] hover:bg-[oklch(0.78_0.18_195)] btn-glow"
-          style={{
-            boxShadow:
-              "0 0 20px oklch(0.72 0.17 195 / 0.35), 0 4px 16px oklch(0.05 0.05 240 / 0.4)",
-          }}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-          Generate New Invite Link
-        </Button>
-      </div>
-
-      {/* How it works info */}
+      {/* Generate invite — name + button row */}
       <div
-        className="flex items-start gap-3 rounded-2xl p-4"
+        className="rounded-2xl p-5 space-y-4"
         style={{
-          background: "oklch(0.68 0.2 250 / 0.06)",
-          border: "1px solid oklch(0.68 0.2 250 / 0.2)",
+          background: "oklch(0.72 0.17 195 / 0.05)",
+          border: "1px solid oklch(0.72 0.17 195 / 0.2)",
+          boxShadow: "0 0 24px oklch(0.72 0.17 195 / 0.08)",
         }}
       >
-        <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-[oklch(0.72_0.17_195)]" />
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          Share invite links with clinicians you want to grant access to. Each
-          code can only be used once. The recipient opens the link, logs in with
-          their identity, and the code grants them access.
+        <p className="text-xs font-semibold uppercase tracking-widest text-[oklch(0.80_0.12_195)]">
+          Generate New Invite Link
         </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Input
+              data-ocid="invite.recipient_name.input"
+              placeholder="Recipient name (e.g. Dr. Ahmed)"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+              className="rounded-xl border-[oklch(0.72_0.17_195/0.3)] bg-[oklch(0.16_0.03_242/0.8)] text-sm placeholder:text-muted-foreground/50 focus-visible:ring-[oklch(0.72_0.17_195/0.4)]"
+              style={{
+                boxShadow:
+                  "0 2px 4px oklch(0.05 0.05 240 / 0.4) inset, 0 1px 0 oklch(0.9 0.02 220 / 0.06)",
+              }}
+            />
+          </div>
+          <Button
+            data-ocid="invite.generate_button"
+            onClick={handleGenerate}
+            disabled={isGenerating || !recipientName.trim()}
+            className="gap-2 rounded-xl bg-[oklch(0.72_0.17_195)] px-5 py-2 text-sm font-semibold text-[oklch(0.10_0.03_240)] hover:bg-[oklch(0.78_0.18_195)] btn-glow disabled:opacity-50"
+            style={{
+              boxShadow:
+                "0 0 20px oklch(0.72 0.17 195 / 0.35), 0 4px 16px oklch(0.05 0.05 240 / 0.4)",
+            }}
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            Generate Link
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground/60">
+          Enter the recipient's name first — it will appear on the invite so you
+          know who it's for.
+        </p>
+      </div>
+
+      {/* Stats row */}
+      <div className="flex items-center gap-4">
+        <div className="rounded-xl border border-[oklch(0.72_0.17_195/0.2)] bg-[oklch(0.72_0.17_195/0.08)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.80_0.12_195)]">
+          {available} Available
+        </div>
+        <div className="rounded-xl border border-[oklch(0.55_0.05_240/0.2)] bg-[oklch(0.55_0.05_240/0.08)] px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+          {usedCount} Used
+        </div>
       </div>
 
       {/* Code list */}

@@ -11,6 +11,7 @@ export interface InviteCode {
   code: string;
   used: boolean;
   createdAt: number;
+  recipientName?: string;
 }
 
 // ── Reading ──────────────────────────────────────────────────────────────────
@@ -48,12 +49,13 @@ function generateRandomCode(): string {
   return `${rand()}-${rand()}-${rand()}`;
 }
 
-export function createInviteCode(): InviteCode {
+export function createInviteCode(recipientName?: string): InviteCode {
   const codes = getAllInviteCodes();
   const newCode: InviteCode = {
     code: generateRandomCode(),
     used: false,
     createdAt: Date.now(),
+    recipientName: recipientName?.trim() || undefined,
   };
   codes.push(newCode);
   saveAllInviteCodes(codes);
