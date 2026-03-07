@@ -30,6 +30,7 @@ export default function App() {
   const { data: callerRole, isLoading: roleLoading } = useGetCallerUserRole();
 
   const [activeView, setActiveView] = useState<ActiveView>("dashboard");
+  const [demoMode, setDemoMode] = useState(false);
 
   // Read invite code from URL on mount (stable reference, URL doesn't change)
   const initialInviteCode = useMemo(() => getUrlParameter("code") ?? "", []);
@@ -77,28 +78,44 @@ export default function App() {
     );
   }
 
+  // Demo mode: show dashboard without authentication
+  const showDashboard =
+    demoMode ||
+    (isAuthenticated && !showAccessRestricted && activeView === "dashboard");
+  const showAccessMgmt =
+    isAuthenticated && !showAccessRestricted && activeView === "access";
+  const showLanding = !isAuthenticated && !demoMode;
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <div className="flex min-h-screen flex-col bg-background">
-        {isAuthenticated && !showAccessRestricted && (
+        {(isAuthenticated && !showAccessRestricted) || demoMode ? (
           <Header
             activeView={activeView}
-            onNavigateAccess={() => setActiveView("access")}
+            onNavigateAccess={
+              demoMode ? undefined : () => setActiveView("access")
+            }
             onNavigateDashboard={() => setActiveView("dashboard")}
+            demoMode={demoMode}
+            onExitDemo={() => setDemoMode(false)}
           />
-        )}
+        ) : null}
         <main className="flex-1">
-          {!isAuthenticated ? (
-            <LandingPage login={login} loginStatus={loginStatus} />
+          {showLanding ? (
+            <LandingPage
+              login={login}
+              loginStatus={loginStatus}
+              onTryDemo={() => setDemoMode(true)}
+            />
           ) : showAccessRestricted ? (
             <AccessRestrictedScreen initialCode={initialInviteCode} />
-          ) : activeView === "access" ? (
+          ) : showAccessMgmt ? (
             <AccessManagement />
-          ) : (
-            <Dashboard />
-          )}
+          ) : showDashboard ? (
+            <Dashboard demoMode={demoMode} />
+          ) : null}
         </main>
-        {isAuthenticated && !showAccessRestricted && (
+        {((isAuthenticated && !showAccessRestricted) || demoMode) && (
           <footer className="border-t border-border/30 bg-background/50 backdrop-blur">
             <div className="container mx-auto px-4 py-4 text-center text-xs text-muted-foreground">
               PhysioAssist is a clinical decision-support tool and does not

@@ -564,6 +564,27 @@ export default function VoiceClinicalScribe() {
           {/* Animated ping rings when recording */}
           {isRecording && (
             <>
+              <div
+                className="eq-ring-1 absolute rounded-full border-2 pointer-events-none"
+                style={{
+                  inset: "-12px",
+                  borderColor: "oklch(0.72 0.17 195 / 0.4)",
+                }}
+              />
+              <div
+                className="eq-ring-2 absolute rounded-full border pointer-events-none"
+                style={{
+                  inset: "-24px",
+                  borderColor: "oklch(0.72 0.17 195 / 0.25)",
+                }}
+              />
+              <div
+                className="eq-ring-3 absolute rounded-full border pointer-events-none"
+                style={{
+                  inset: "-36px",
+                  borderColor: "oklch(0.72 0.17 195 / 0.15)",
+                }}
+              />
               <span
                 className="absolute inline-flex h-36 w-36 rounded-full opacity-30"
                 style={{

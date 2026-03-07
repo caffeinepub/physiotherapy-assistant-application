@@ -145,18 +145,16 @@ export default function PatientDetailView({
 
   return (
     <div className="page-enter relative min-h-[calc(100vh-8rem)]">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
-
-      {/* Ambient orbs */}
+      {/* Ambient orbs — reduced opacity for performance */}
       <div
-        className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full blur-3xl opacity-15"
+        className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full blur-3xl opacity-8"
         style={{
           background:
             "radial-gradient(circle, oklch(0.72 0.17 195 / 0.6) 0%, transparent 70%)",
         }}
       />
       <div
-        className="pointer-events-none absolute bottom-1/3 left-0 h-60 w-60 rounded-full blur-3xl opacity-12"
+        className="pointer-events-none absolute bottom-1/3 left-0 h-60 w-60 rounded-full blur-3xl opacity-6"
         style={{
           background:
             "radial-gradient(circle, oklch(0.68 0.2 250 / 0.5) 0%, transparent 70%)",
@@ -169,12 +167,12 @@ export default function PatientDetailView({
           data-ocid="patient.back_button"
           variant="ghost"
           onClick={onBack}
-          className="mb-6 gap-2 rounded-xl border border-[oklch(0.72_0.17_195/0.15)] bg-[oklch(0.20_0.04_240/0.5)] text-sm hover:bg-[oklch(0.24_0.04_240/0.7)] transition-all duration-200"
+          className="group mb-6 gap-2 rounded-xl border border-[oklch(0.72_0.17_195/0.15)] bg-[oklch(0.20_0.04_240/0.5)] text-sm hover:bg-[oklch(0.24_0.04_240/0.7)] transition-all duration-200"
           style={{
             animation: "fade-slide-in 0.4s ease forwards",
           }}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
           Back to Patients
         </Button>
 
@@ -313,7 +311,7 @@ export default function PatientDetailView({
             <div ref={assessmentRevealRef} className="section-hidden space-y-4">
               <div className="flex items-center justify-between">
                 <h2
-                  className="font-display text-xl font-bold bg-clip-text text-transparent"
+                  className="heading-underline font-display text-xl font-bold bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
                       "linear-gradient(135deg, oklch(0.85 0.12 195) 0%, oklch(0.72 0.17 195) 50%, oklch(0.68 0.2 250) 100%)",
@@ -372,7 +370,7 @@ export default function PatientDetailView({
             <div ref={plansRevealRef} className="section-hidden space-y-4">
               <div className="flex items-center justify-between">
                 <h2
-                  className="font-display text-xl font-bold bg-clip-text text-transparent"
+                  className="heading-underline font-display text-xl font-bold bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
                       "linear-gradient(135deg, oklch(0.80 0.16 155) 0%, oklch(0.68 0.18 155) 100%)",

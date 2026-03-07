@@ -171,6 +171,70 @@ export default function AccessRestrictedScreen({
                   "0 0 60px oklch(0.72 0.17 195 / 0.08), 0 24px 64px oklch(0.05 0.05 240 / 0.6), 0 1px 0 oklch(0.9 0.02 220 / 0.06) inset",
               }}
             >
+              {/* Step indicator */}
+              <div className="flex items-center gap-2 w-full justify-center">
+                {[
+                  { label: "Login", step: 1 },
+                  { label: "Redeem Invite", step: 2 },
+                  { label: "Access Platform", step: 3 },
+                ].map(({ label, step }, i) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors"
+                        style={
+                          step === 1
+                            ? {
+                                background: "oklch(0.68 0.18 155 / 0.2)",
+                                border: "1px solid oklch(0.68 0.18 155 / 0.6)",
+                                color: "oklch(0.78 0.15 155)",
+                              }
+                            : step === 2
+                              ? {
+                                  background: "oklch(0.72 0.17 195 / 0.2)",
+                                  border:
+                                    "1px solid oklch(0.72 0.17 195 / 0.8)",
+                                  color: "oklch(0.85 0.12 195)",
+                                  boxShadow:
+                                    "0 0 12px oklch(0.72 0.17 195 / 0.3)",
+                                }
+                              : {
+                                  background: "oklch(0.25 0.04 240 / 0.3)",
+                                  border: "1px solid oklch(0.4 0.05 240 / 0.3)",
+                                  color: "oklch(0.5 0.04 240)",
+                                }
+                        }
+                      >
+                        {step === 1 ? "✓" : step}
+                      </div>
+                      <span
+                        className="text-[9px] font-semibold uppercase tracking-wide whitespace-nowrap"
+                        style={
+                          step === 2
+                            ? { color: "oklch(0.85 0.12 195)" }
+                            : step === 1
+                              ? { color: "oklch(0.68 0.18 155)" }
+                              : { color: "oklch(0.45 0.04 240)" }
+                        }
+                      >
+                        {label}
+                      </span>
+                    </div>
+                    {i < 2 && (
+                      <div
+                        className="h-px w-6 mb-4"
+                        style={{
+                          background:
+                            i === 0
+                              ? "oklch(0.72 0.17 195 / 0.4)"
+                              : "oklch(0.3 0.04 240 / 0.4)",
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
               {/* Icon */}
               <motion.div
                 animate={{ y: [0, -6, 0] }}
@@ -203,8 +267,8 @@ export default function AccessRestrictedScreen({
                   </span>
                 </h1>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  PhysioAssist is invite-only. You need an invite link from an
-                  administrator to access this platform.
+                  PhysioAssist is invite-only. Ask your administrator for an
+                  invite link, or enter your code below.
                 </p>
               </div>
 
@@ -274,6 +338,11 @@ export default function AccessRestrictedScreen({
                   )}
                 </Button>
               </div>
+
+              {/* Contact admin hint */}
+              <p className="text-xs text-muted-foreground/50 text-center">
+                Contact your administrator to get an invite link.
+              </p>
 
               {/* Sign out link */}
               <button

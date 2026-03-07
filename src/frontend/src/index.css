@@ -552,6 +552,273 @@
     }
   }
 
+  /* ============================================================
+     NEW PREMIUM ANIMATIONS & UTILITIES
+     ============================================================ */
+
+  /* Aurora mesh drift */
+  @keyframes aurora-drift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  .aurora-bg {
+    background: linear-gradient(
+      135deg,
+      oklch(0.13 0.025 240) 0%,
+      oklch(0.15 0.04 260) 20%,
+      oklch(0.14 0.035 220) 40%,
+      oklch(0.16 0.04 200) 60%,
+      oklch(0.13 0.025 240) 100%
+    );
+    background-size: 400% 400%;
+    animation: aurora-drift 12s ease infinite;
+    will-change: background-position;
+  }
+
+  /* Holographic shimmer for cards */
+  @keyframes holo-sheen {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+  .holo-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .holo-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      oklch(0.85 0.1 195 / 0.08) 50%,
+      oklch(0.85 0.1 250 / 0.1) 55%,
+      oklch(0.85 0.1 300 / 0.08) 60%,
+      transparent 70%
+    );
+    background-size: 200% auto;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: holo-sheen 0s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .holo-shimmer:hover::after {
+    animation-duration: 1.2s;
+    opacity: 1;
+  }
+
+  /* Spinning gradient border — with @property for browsers that support it */
+  @supports (background: conic-gradient(from 1deg, red, blue)) {
+    @property --angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes gradient-border-spin {
+      0% {
+        --angle: 0deg;
+      }
+      100% {
+        --angle: 360deg;
+      }
+    }
+    .animated-border::before {
+      background: conic-gradient(
+        from var(--angle),
+        oklch(0.72 0.17 195 / 0.8),
+        oklch(0.68 0.2 250 / 0.6),
+        oklch(0.72 0.2 300 / 0.5),
+        oklch(0.72 0.17 195 / 0.8)
+      );
+      animation: gradient-border-spin 4s linear infinite;
+    }
+  }
+  .animated-border {
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+  .animated-border::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(0.72 0.17 195 / 0.6),
+      oklch(0.68 0.2 250 / 0.5),
+      oklch(0.72 0.2 300 / 0.4)
+    );
+    z-index: -1;
+  }
+
+  /* Ping beacon */
+  @keyframes ping-beacon {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    70% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+  .ping-beacon {
+    position: relative;
+  }
+  .ping-beacon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: inherit;
+    animation: ping-beacon 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Click ripple */
+  @keyframes ripple-out {
+    from {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+  .btn-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-ripple .ripple {
+    position: absolute;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    margin-top: -30px;
+    margin-left: -30px;
+    background: oklch(0.9 0.05 195 / 0.35);
+    animation: ripple-out 0.6s ease-out forwards;
+    pointer-events: none;
+  }
+
+  /* Stats ticker text */
+  @keyframes ticker-count {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .ticker-enter {
+    animation: ticker-count 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Card flip in */
+  @keyframes card-flip-in {
+    0% {
+      transform: perspective(600px) rotateY(90deg);
+      opacity: 0;
+    }
+    100% {
+      transform: perspective(600px) rotateY(0deg);
+      opacity: 1;
+    }
+  }
+  .card-flip-in {
+    animation: card-flip-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Equalizer rings for mic */
+  @keyframes eq-ring {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.15);
+      opacity: 0.3;
+    }
+  }
+  .eq-ring-1 {
+    animation: eq-ring 0.8s ease-in-out infinite;
+  }
+  .eq-ring-2 {
+    animation: eq-ring 0.8s ease-in-out 0.15s infinite;
+  }
+  .eq-ring-3 {
+    animation: eq-ring 0.8s ease-in-out 0.3s infinite;
+  }
+
+  /* Gradient underline for headings */
+  .heading-underline {
+    position: relative;
+    display: inline-block;
+  }
+  .heading-underline::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      oklch(0.72 0.17 195),
+      oklch(0.68 0.2 250),
+      oklch(0.72 0.2 300)
+    );
+    background-size: 200% auto;
+    animation: shimmer-line 2s linear infinite;
+  }
+
+  /* Floating orbs */
+  @keyframes float-orb {
+    0%,
+    100% {
+      transform: translateY(0px) translateX(0px);
+    }
+    33% {
+      transform: translateY(-12px) translateX(6px);
+    }
+    66% {
+      transform: translateY(6px) translateX(-8px);
+    }
+  }
+  .float-orb {
+    animation: float-orb 6s ease-in-out infinite;
+    will-change: transform;
+  }
+  .float-orb-delay {
+    animation: float-orb 6s ease-in-out 2s infinite;
+    will-change: transform;
+  }
+  .float-orb-delay2 {
+    animation: float-orb 6s ease-in-out 4s infinite;
+    will-change: transform;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
@@ -569,5 +836,29 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: oklch(0.55 0.08 210 / 0.8);
+  }
+
+  /* ============================================================
+     ACCESSIBILITY — Reduced motion
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    .aurora-bg,
+    .float-orb,
+    .float-orb-delay,
+    .float-orb-delay2,
+    .glow-pulse,
+    .stat-glow-pulse,
+    .shimmer-border-line,
+    .holo-shimmer::after,
+    .animated-border::before,
+    .ping-beacon::after,
+    .eq-ring-1,
+    .eq-ring-2,
+    .eq-ring-3,
+    .scan-beam,
+    .joint-pulse {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 }

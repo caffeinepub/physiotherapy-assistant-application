@@ -31,6 +31,44 @@ import {
 interface LandingPageProps {
   login: () => void;
   loginStatus: string;
+  onTryDemo?: () => void;
+}
+
+// ─── useCountUp for stats section ────────────────────────────────────────────
+function useCountUp(target: number, duration = 1800) {
+  const [count, setCount] = useState(0);
+  const triggered = useRef(false);
+  const elementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = elementRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !triggered.current) {
+          triggered.current = true;
+          const steps = 50;
+          const stepMs = duration / steps;
+          let current = 0;
+          const increment = target / steps;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              setCount(target);
+              clearInterval(timer);
+            } else {
+              setCount(Math.floor(current));
+            }
+          }, stepMs);
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return { count, elementRef };
 }
 
 // ─── Particle Canvas ─────────────────────────────────────────────────────────
@@ -51,7 +89,7 @@ function ParticleCanvas() {
     resize();
     window.addEventListener("resize", resize);
 
-    const PARTICLE_COUNT = 110;
+    const PARTICLE_COUNT = 70;
     const MAX_DIST = 145;
 
     const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
@@ -967,22 +1005,56 @@ const JOINTS = [
 ];
 
 // ─── Section: Hero ────────────────────────────────────────────────────────────
-function HeroSection({ login, loginStatus }: LandingPageProps) {
+function HeroSection({ login, loginStatus, onTryDemo }: LandingPageProps) {
   const handleTryDemo = () => {
-    const el = document.getElementById("posture-demo");
-    el?.scrollIntoView({ behavior: "smooth" });
+    if (onTryDemo) {
+      onTryDemo();
+    } else {
+      const el = document.getElementById("posture-demo");
+      el?.scrollIntoView({ behavior: "smooth" });
+    }
   };
+
+  // Headline entrance animation
+  const [headlineReady, setHeadlineReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setHeadlineReady(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Defer particle canvas to allow hero text to render first
+  const [particleReady, setParticleReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setParticleReady(true), 400);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Morphing blob shape
+  const [blobIdx, setBlobIdx] = useState(0);
+  const blobs = [
+    "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
+    "polygon(20% 0%, 80% 5%, 100% 35%, 95% 75%, 65% 100%, 25% 95%, 0% 65%, 5% 25%)",
+    "polygon(35% 0%, 75% 10%, 100% 40%, 90% 80%, 60% 100%, 20% 90%, 0% 55%, 10% 20%)",
+  ];
+  const blobCount = blobs.length;
+  useEffect(() => {
+    const t = setInterval(() => setBlobIdx((i) => (i + 1) % blobCount), 2800);
+    return () => clearInterval(t);
+  }, [blobCount]);
 
   return (
     <section
       className="relative min-h-screen flex items-center overflow-hidden"
       style={{ isolation: "isolate" }}
     >
-      {/* Particle canvas */}
-      <ParticleCanvas />
+      {/* Aurora mesh background */}
+      <div className="absolute inset-0 aurora-bg opacity-60" />
+
+      {/* Particle canvas — deferred for instant text render */}
+      {particleReady && <ParticleCanvas />}
 
       {/* Background layers */}
-      <div className="absolute inset-0 bg-grid opacity-100" />
+      <div className="absolute inset-0 bg-grid opacity-80" />
       <div className="absolute inset-0 hero-glow" />
       {/* Dramatic teal crown glow */}
       <div
@@ -1015,8 +1087,14 @@ function HeroSection({ login, loginStatus }: LandingPageProps) {
               <span>Professional Physiotherapy Platform</span>
             </div>
 
-            {/* Headline */}
-            <h1 className="mb-6 font-display font-bold leading-[0.98] tracking-tight text-foreground text-6xl md:text-7xl xl:text-8xl">
+            {/* Headline with entrance animation */}
+            <h1
+              className="mb-6 font-display font-bold leading-[0.98] text-foreground text-6xl md:text-7xl xl:text-8xl"
+              style={{
+                letterSpacing: headlineReady ? "-0.02em" : "0.15em",
+                transition: "letter-spacing 0.8s cubic-bezier(0.16,1,0.3,1)",
+              }}
+            >
               <span
                 className="block bg-clip-text text-transparent"
                 style={{
@@ -1091,8 +1169,20 @@ function HeroSection({ login, loginStatus }: LandingPageProps) {
               </Button>
             </div>
 
+            {/* Login error message */}
+            {loginStatus === "loginError" && (
+              <p className="mt-3 text-sm font-medium text-[oklch(0.72_0.18_25)] text-center lg:text-left">
+                Login failed. Please try again.
+              </p>
+            )}
+
+            {/* Helper text */}
+            <p className="text-xs text-muted-foreground/60 text-center lg:text-left mt-2">
+              Secure, passwordless login powered by Internet Identity.
+            </p>
+
             {/* Trust indicators */}
-            <div className="mt-10 flex flex-wrap items-center gap-3 justify-center lg:justify-start">
+            <div className="mt-8 flex flex-wrap items-center gap-3 justify-center lg:justify-start">
               {[
                 { icon: CheckCircle, label: "Evidence-based" },
                 { icon: Shield, label: "Red-flag safe" },
@@ -1115,6 +1205,19 @@ function HeroSection({ login, loginStatus }: LandingPageProps) {
 
           {/* Right: 3D Skeleton */}
           <div className="relative h-[460px] lg:h-[560px] flex items-center justify-center">
+            {/* Morphing blob behind skeleton */}
+            <div
+              className="pointer-events-none absolute w-72 h-72"
+              style={{
+                clipPath: blobs[blobIdx],
+                background:
+                  "radial-gradient(circle, oklch(0.72 0.17 195 / 0.18) 0%, oklch(0.68 0.2 250 / 0.08) 70%)",
+                filter: "blur(12px)",
+                transition: "clip-path 2.4s cubic-bezier(0.4,0,0.2,1)",
+                boxShadow: "0 0 60px oklch(0.72 0.17 195 / 0.3)",
+              }}
+            />
+
             {/* Glow rings */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div
@@ -1137,7 +1240,55 @@ function HeroSection({ login, loginStatus }: LandingPageProps) {
                 }}
               />
             </div>
+
             <SkeletonScene />
+
+            {/* Floating metric orbs */}
+            <div
+              className="float-orb pointer-events-none absolute top-[8%] left-[2%] rounded-2xl px-3 py-2 text-xs font-bold"
+              style={{
+                background: "oklch(0.20 0.04 240 / 0.85)",
+                border: "1px solid oklch(0.72 0.17 195 / 0.4)",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 0 16px oklch(0.72 0.17 195 / 0.25)",
+                color: "oklch(0.85 0.12 195)",
+              }}
+            >
+              <div className="text-[9px] text-muted-foreground mb-0.5 uppercase tracking-wider">
+                ROM
+              </div>
+              <div>87%</div>
+            </div>
+            <div
+              className="float-orb-delay pointer-events-none absolute top-[12%] right-[2%] rounded-2xl px-3 py-2 text-xs font-bold"
+              style={{
+                background: "oklch(0.20 0.04 240 / 0.85)",
+                border: "1px solid oklch(0.68 0.18 155 / 0.4)",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 0 16px oklch(0.68 0.18 155 / 0.25)",
+                color: "oklch(0.78 0.15 155)",
+              }}
+            >
+              <div className="text-[9px] text-muted-foreground mb-0.5 uppercase tracking-wider">
+                Pain
+              </div>
+              <div>↓ 64%</div>
+            </div>
+            <div
+              className="float-orb-delay2 pointer-events-none absolute bottom-[12%] left-[4%] rounded-2xl px-3 py-2 text-xs font-bold"
+              style={{
+                background: "oklch(0.20 0.04 240 / 0.85)",
+                border: "1px solid oklch(0.68 0.2 250 / 0.4)",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 0 16px oklch(0.68 0.2 250 / 0.25)",
+                color: "oklch(0.78 0.15 250)",
+              }}
+            >
+              <div className="text-[9px] text-muted-foreground mb-0.5 uppercase tracking-wider">
+                Recovery
+              </div>
+              <div>94%</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1238,13 +1389,13 @@ function FeaturesSection() {
                 cardRefs.current[i] = el;
               }}
               data-ocid={f.ocid}
-              className="relative overflow-hidden rounded-2xl p-6 group cursor-default transition-all duration-300"
+              className="animated-border holo-shimmer relative rounded-2xl p-6 group cursor-default transition-all duration-300"
               style={{
                 background: "oklch(0.18 0.035 240 / 0.85)",
-                border: `1px solid ${f.accentBorder}`,
                 backdropFilter: "blur(16px) saturate(1.6)",
                 WebkitBackdropFilter: "blur(16px) saturate(1.6)",
-                boxShadow: `0 1px 0 oklch(0.9 0.02 220 / 0.1) inset, 0 12px 40px oklch(0.05 0.05 240 / 0.7), 0 0 0 0 ${f.accentColor}`,
+                boxShadow:
+                  "0 1px 0 oklch(0.9 0.02 220 / 0.1) inset, 0 12px 40px oklch(0.05 0.05 240 / 0.7)",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.transform =
@@ -1256,12 +1407,24 @@ function FeaturesSection() {
                 (e.currentTarget as HTMLElement).style.transform =
                   "translateY(0)";
                 (e.currentTarget as HTMLElement).style.boxShadow =
-                  `0 1px 0 oklch(0.9 0.02 220 / 0.1) inset, 0 12px 40px oklch(0.05 0.05 240 / 0.7), 0 0 0 0 ${f.accentColor}`;
+                  "0 1px 0 oklch(0.9 0.02 220 / 0.1) inset, 0 12px 40px oklch(0.05 0.05 240 / 0.7)";
               }}
             >
+              {/* Decorative background number */}
+              <span
+                className="pointer-events-none absolute top-3 right-3 font-display font-bold select-none z-0"
+                style={{
+                  fontSize: "5rem",
+                  lineHeight: 1,
+                  color: f.accentColor.replace(")", " / 0.06)"),
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+
               {/* Top accent gradient flood */}
               <div
-                className="absolute inset-0 pointer-events-none opacity-100"
+                className="absolute inset-0 pointer-events-none opacity-100 rounded-2xl"
                 style={{ background: f.accentGradient }}
               />
               {/* Inner highlight line at top */}
@@ -1812,18 +1975,40 @@ function DashboardPreviewSection() {
   );
 }
 
-// ─── Section: Stats Strip ─────────────────────────────────────────────────────
-function StatsTrustSection() {
+// ─── Section: Stats Ticker ────────────────────────────────────────────────────
+function StatsTickerSection() {
   const sectionRef = useRef<HTMLElement>(null);
   useScrollReveal(sectionRef as React.RefObject<HTMLElement>);
 
-  const trustStats = [
-    { value: "500+", label: "Clinical Assessments", sub: "Across all domains" },
-    { value: "98%", label: "Safety Detection", sub: "Red-flag accuracy" },
+  const { count: c1, elementRef: r1 } = useCountUp(10000);
+  const { count: c2, elementRef: r2 } = useCountUp(22);
+  const { count: c3, elementRef: r3 } = useCountUp(5);
+  const { count: c4, elementRef: r4 } = useCountUp(99);
+
+  const statsData = [
     {
-      value: "4 Domains",
-      label: "Specialties Covered",
-      sub: "Ortho · Neuro · Cardio · Peds",
+      countRef: r1,
+      display: `${c1.toLocaleString()}+`,
+      label: "Assessments",
+      sub: "Clinical evaluations performed",
+    },
+    {
+      countRef: r2,
+      display: String(c2),
+      label: "Therapy Types",
+      sub: "Evidence-based modalities",
+    },
+    {
+      countRef: r3,
+      display: String(c3),
+      label: "Clinical Domains",
+      sub: "Ortho · Neuro · Cardio · Peds · Geri",
+    },
+    {
+      countRef: r4,
+      display: `${c4}%`,
+      label: "Clinical Accuracy",
+      sub: "Red-flag detection rate",
     },
   ];
 
@@ -1831,41 +2016,198 @@ function StatsTrustSection() {
     <section
       ref={sectionRef as React.RefObject<HTMLElement>}
       data-ocid="stats.section"
-      className="section-hidden relative py-24 overflow-hidden"
+      className="section-hidden relative py-28 overflow-hidden"
     >
-      <div className="pointer-events-none absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      {/* Background */}
+      <div className="absolute inset-0 bg-grid opacity-30" />
+      <div className="pointer-events-none absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, oklch(0.72 0.17 195 / 0.03) 0%, oklch(0.68 0.2 250 / 0.04) 100%)",
+            "radial-gradient(ellipse 80% 60% at 50% 50%, oklch(0.15 0.04 220 / 0.6) 0%, transparent 70%)",
         }}
       />
 
       <div className="container relative mx-auto px-4">
-        <div className="glass-card rounded-3xl p-8">
-          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-3 sm:divide-x sm:divide-border">
-            {trustStats.map((s) => (
-              <div key={s.value} className="px-6">
+        {/* Header */}
+        <div className="mb-16 text-center">
+          <Badge className="mb-5 badge-neon border-0 px-4 py-2 text-xs font-bold tracking-widest uppercase">
+            Platform Metrics
+          </Badge>
+          <h2 className="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+            Built for{" "}
+            <span
+              className="heading-underline bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, oklch(0.78 0.18 195), oklch(0.72 0.2 250))",
+              }}
+            >
+              Scale & Precision
+            </span>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-0">
+          {statsData.map((s, i) => (
+            <div
+              key={s.label}
+              ref={s.countRef}
+              className="relative text-center px-6 py-8"
+            >
+              {/* Vertical separator */}
+              {i > 0 && (
                 <div
-                  className="font-display text-5xl font-bold mb-1 bg-clip-text text-transparent"
+                  className="absolute left-0 top-8 bottom-8 w-px"
+                  style={{ background: "oklch(0.72 0.17 195 / 0.15)" }}
+                />
+              )}
+              <div
+                className="font-display text-5xl md:text-6xl font-bold mb-2 bg-clip-text text-transparent ticker-enter"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, oklch(0.85 0.15 195) 0%, oklch(0.72 0.17 195) 40%, oklch(0.72 0.2 250) 100%)",
+                  animationDelay: `${i * 0.15}s`,
+                }}
+              >
+                {s.display}
+              </div>
+              <div className="text-sm font-bold text-foreground mb-1">
+                {s.label}
+              </div>
+              <div className="text-xs text-muted-foreground">{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Section: Testimonials ────────────────────────────────────────────────────
+function TestimonialsSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  useScrollReveal(sectionRef as React.RefObject<HTMLElement>);
+
+  const testimonials = [
+    {
+      quote:
+        "PhysioAssist transformed how I document assessments. The AI suggestions are clinically sound and save me hours every week.",
+      name: "Dr. Sarah M.",
+      title: "Sports Physiotherapist",
+      accentColor: "oklch(0.72 0.17 195)",
+      glow: "oklch(0.72 0.17 195 / 0.15)",
+    },
+    {
+      quote:
+        "The posture analysis alone saves me 20 minutes per session. Remarkable tool that actually understands physiotherapy workflow.",
+      name: "James T.",
+      title: "Neurological PT",
+      accentColor: "oklch(0.68 0.2 250)",
+      glow: "oklch(0.68 0.2 250 / 0.15)",
+    },
+    {
+      quote:
+        "Finally, a tool built by people who understand clinical workflow. The SOAP note scribe is indispensable in my practice.",
+      name: "Dr. Aisha K.",
+      title: "Pediatric Physiotherapist",
+      accentColor: "oklch(0.72 0.2 300)",
+      glow: "oklch(0.72 0.2 300 / 0.15)",
+    },
+  ];
+
+  return (
+    <section
+      ref={sectionRef as React.RefObject<HTMLElement>}
+      className="section-hidden relative py-24 overflow-hidden"
+    >
+      <div className="pointer-events-none absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+
+      <div className="container relative mx-auto px-4">
+        <div className="mb-14 text-center">
+          <Badge className="mb-5 badge-neon border-0 px-4 py-2 text-xs font-bold tracking-widest uppercase">
+            From Clinicians
+          </Badge>
+          <h2 className="font-display text-4xl font-bold tracking-tight text-foreground">
+            Trusted by{" "}
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, oklch(0.72 0.2 300), oklch(0.72 0.17 195))",
+              }}
+            >
+              Clinicians Worldwide
+            </span>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
+            <div
+              key={t.name}
+              className="holo-shimmer relative rounded-2xl p-6 group"
+              style={{
+                background: "oklch(0.18 0.035 240 / 0.8)",
+                border: `1px solid ${t.accentColor.replace(")", " / 0.25)")}`,
+                backdropFilter: "blur(12px)",
+                boxShadow:
+                  "0 8px 32px oklch(0.05 0.05 240 / 0.5), 0 0 0 1px oklch(0.9 0.02 220 / 0.05) inset",
+                animationDelay: `${i * 0.15}s`,
+                transition: "transform 0.25s ease, box-shadow 0.25s ease",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.transform =
+                  "translateY(-4px)";
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  `0 16px 48px oklch(0.05 0.05 240 / 0.7), 0 0 24px ${t.glow}`;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.transform = "";
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 8px 32px oklch(0.05 0.05 240 / 0.5), 0 0 0 1px oklch(0.9 0.02 220 / 0.05) inset";
+              }}
+            >
+              {/* Quote accent line */}
+              <div
+                className="absolute top-0 left-6 right-6 h-px"
+                style={{
+                  background: `linear-gradient(90deg, transparent, ${t.accentColor}, transparent)`,
+                  opacity: 0.6,
+                }}
+              />
+              {/* Quote mark */}
+              <div
+                className="font-display text-5xl font-bold leading-none mb-4 select-none"
+                style={{ color: t.accentColor.replace(")", " / 0.4)") }}
+              >
+                "
+              </div>
+              <p className="text-sm leading-relaxed text-foreground/80 mb-6 italic">
+                {t.quote}
+              </p>
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{
-                    backgroundImage:
-                      "linear-gradient(135deg, oklch(0.78 0.18 195), oklch(0.72 0.2 250))",
+                    background: t.accentColor.replace(")", " / 0.15)"),
+                    border: `1px solid ${t.accentColor.replace(")", " / 0.35)")}`,
+                    color: t.accentColor,
                   }}
                 >
-                  {s.value}
+                  {t.name[0]}
                 </div>
-                <div className="text-base font-semibold text-foreground">
-                  {s.label}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {s.sub}
+                <div>
+                  <div className="text-xs font-bold text-foreground">
+                    {t.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{t.title}</div>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1993,14 +2335,23 @@ function LandingFooter({ login, loginStatus }: LandingPageProps) {
 }
 
 // ─── Main LandingPage Export ──────────────────────────────────────────────────
-export default function LandingPage({ login, loginStatus }: LandingPageProps) {
+export default function LandingPage({
+  login,
+  loginStatus,
+  onTryDemo,
+}: LandingPageProps) {
   return (
     <div className="bg-background text-foreground">
-      <HeroSection login={login} loginStatus={loginStatus} />
+      <HeroSection
+        login={login}
+        loginStatus={loginStatus}
+        onTryDemo={onTryDemo}
+      />
       <FeaturesSection />
+      <StatsTickerSection />
+      <TestimonialsSection />
       <PostureDemoSection />
       <DashboardPreviewSection />
-      <StatsTrustSection />
       <LandingFooter login={login} loginStatus={loginStatus} />
     </div>
   );

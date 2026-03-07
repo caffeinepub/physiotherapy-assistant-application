@@ -1,13 +1,16 @@
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Activity,
   ClipboardList,
   FileText,
+  Plus,
   Sparkles,
   TrendingUp,
   Users,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import AddPatientDialog from "../components/AddPatientDialog";
 import PatientDetailView from "../components/PatientDetailView";
 import PatientsTab from "../components/PatientsTab";
 import { useGetAllPatients, useGetDashboard } from "../hooks/useQueries";
@@ -69,9 +72,9 @@ function StatCard({
       className="stat-card stat-glow-pulse rounded-2xl p-5 relative"
       style={{ animationDelay: `${delay}s` }}
     >
-      {/* Corner glow dot */}
+      {/* Corner ping beacon dot */}
       <span
-        className="absolute top-3 right-3 h-1.5 w-1.5 rounded-full"
+        className="ping-beacon absolute top-3 right-3 h-1.5 w-1.5 rounded-full"
         style={{
           background: "oklch(0.72 0.17 195)",
           boxShadow: "0 0 6px oklch(0.72 0.17 195 / 0.8)",
@@ -131,16 +134,92 @@ function useScrollReveal() {
   return ref;
 }
 
-export default function Dashboard() {
-  const { data: dashboard } = useGetDashboard();
-  const { data: patients } = useGetAllPatients();
+// Demo data shown when in demo mode (matches PatientProfile shape)
+const DEMO_PATIENTS = [
+  {
+    id: "demo-1",
+    firstName: "Ahmed",
+    lastName: "Al-Rashidi",
+    gender: "Male",
+    dateOfBirth: "1982-03-15",
+    contactInfo: "+971 50 123 4567",
+    activityGoals: "Return to walking without pain",
+    medicalHistory: "Chronic Low Back Pain – 3 years",
+    surgicalHistory: "None",
+  },
+  {
+    id: "demo-2",
+    firstName: "Sara",
+    lastName: "Johnson",
+    gender: "Female",
+    dateOfBirth: "1996-07-22",
+    contactInfo: "sara.j@email.com",
+    activityGoals: "Return to football",
+    medicalHistory: "Post-ACL Reconstruction (Left Knee)",
+    surgicalHistory: "ACL Reconstruction 2024",
+  },
+  {
+    id: "demo-3",
+    firstName: "Mohammed",
+    lastName: "Al-Farsi",
+    gender: "Male",
+    dateOfBirth: "1959-01-10",
+    contactInfo: "+966 55 987 6543",
+    activityGoals: "Improve walking independence",
+    medicalHistory: "Hemiplegia following ischaemic stroke",
+    surgicalHistory: "None",
+  },
+  {
+    id: "demo-4",
+    firstName: "Fatima",
+    lastName: "Al-Zahra",
+    gender: "Female",
+    dateOfBirth: "1969-11-05",
+    contactInfo: "fatima@email.com",
+    activityGoals: "Reduce knee pain on stairs",
+    medicalHistory: "Bilateral Knee Osteoarthritis – Grade II",
+    surgicalHistory: "None",
+  },
+  {
+    id: "demo-5",
+    firstName: "Khalid",
+    lastName: "Nasser",
+    gender: "Male",
+    dateOfBirth: "2005-09-18",
+    contactInfo: "+973 33 456 7890",
+    activityGoals: "Improve posture and reduce back fatigue",
+    medicalHistory: "Mild Scoliosis (Cobb angle 18°)",
+    surgicalHistory: "None",
+  },
+];
+
+const DEMO_DASHBOARD = {
+  patientCount: BigInt(5),
+  assessmentCount: BigInt(12),
+  treatmentPlanCount: BigInt(8),
+  aiPlanCount: BigInt(6),
+};
+
+interface DashboardProps {
+  demoMode?: boolean;
+}
+
+export default function Dashboard({ demoMode }: DashboardProps) {
+  const { data: dashboardData } = useGetDashboard();
+  const { data: patientsData } = useGetAllPatients();
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
+  const [showFabAdd, setShowFabAdd] = useState(false);
+  const [activeTab, setActiveTab] = useState("patients");
 
   const tabsRevealRef = useScrollReveal();
 
-  if (selectedPatientId) {
+  // Use demo data if in demo mode
+  const dashboard = demoMode ? DEMO_DASHBOARD : dashboardData;
+  const patients = demoMode ? DEMO_PATIENTS : patientsData;
+
+  if (selectedPatientId && !demoMode) {
     return (
       <PatientDetailView
         patientId={selectedPatientId}
@@ -149,29 +228,71 @@ export default function Dashboard() {
     );
   }
 
+  if (selectedPatientId && demoMode) {
+    const demoPatient = DEMO_PATIENTS.find((p) => p.id === selectedPatientId);
+    // In demo mode, show a simplified patient view
+    return (
+      <div className="relative min-h-[calc(100vh-8rem)] flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
+        <div className="relative z-10 max-w-lg text-center px-6">
+          <div
+            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl"
+            style={{
+              background: "oklch(0.72 0.17 195 / 0.15)",
+              border: "1px solid oklch(0.72 0.17 195 / 0.3)",
+            }}
+          >
+            <Users className="h-10 w-10 text-[oklch(0.72_0.17_195)]" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+            {demoPatient
+              ? `${demoPatient.firstName} ${demoPatient.lastName}`
+              : "Demo Patient"}
+          </h2>
+          <p className="text-muted-foreground mb-1">
+            {demoPatient?.medicalHistory}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {demoPatient?.gender} · DOB: {demoPatient?.dateOfBirth}
+          </p>
+          <p className="text-sm text-muted-foreground mt-4 mb-6">
+            Full patient details, assessments, therapy plans, and progress
+            tracking are available after logging in.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSelectedPatientId(null)}
+            className="rounded-xl border border-[oklch(0.72_0.17_195/0.3)] px-6 py-2.5 text-sm font-semibold text-[oklch(0.80_0.12_195)] hover:bg-[oklch(0.72_0.17_195/0.1)] transition-colors"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-enter relative min-h-[calc(100vh-8rem)]">
-      {/* Background decoration */}
+      {/* Background grid */}
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
-      <div className="pointer-events-none absolute inset-0 hero-glow" />
 
-      {/* Ambient orbs */}
+      {/* Ambient orbs — reduced opacity for performance */}
       <div
-        className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full blur-3xl opacity-20"
+        className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full blur-3xl opacity-10"
         style={{
           background:
             "radial-gradient(circle, oklch(0.72 0.17 195 / 0.6) 0%, transparent 70%)",
         }}
       />
       <div
-        className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 rounded-full blur-3xl opacity-15"
+        className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 rounded-full blur-3xl opacity-8"
         style={{
           background:
             "radial-gradient(circle, oklch(0.68 0.2 250 / 0.5) 0%, transparent 70%)",
         }}
       />
       <div
-        className="pointer-events-none absolute left-1/4 top-1/3 h-64 w-64 rounded-full blur-3xl opacity-10"
+        className="pointer-events-none absolute left-1/4 top-1/3 h-64 w-64 rounded-full blur-3xl opacity-5"
         style={{
           background:
             "radial-gradient(circle, oklch(0.75 0.2 300 / 0.5) 0%, transparent 70%)",
@@ -210,7 +331,9 @@ export default function Dashboard() {
           <StatCard
             title="Total Patients"
             value={dashboard ? Number(dashboard.patientCount) : 0}
-            subtitle="Active patient records"
+            subtitle={
+              demoMode ? "Sample demo records" : "Active patient records"
+            }
             icon={Users}
             iconGlow="icon-glow-teal"
             iconColor="text-[oklch(0.72_0.17_195)]"
@@ -221,7 +344,7 @@ export default function Dashboard() {
           <StatCard
             title="Assessments"
             value={dashboard ? Number(dashboard.assessmentCount) : 0}
-            subtitle="Completed evaluations"
+            subtitle={demoMode ? "Sample evaluations" : "Completed evaluations"}
             icon={ClipboardList}
             iconGlow="icon-glow-blue"
             iconColor="text-[oklch(0.68_0.20_250)]"
@@ -232,7 +355,7 @@ export default function Dashboard() {
           <StatCard
             title="Treatment Plans"
             value={dashboard ? Number(dashboard.treatmentPlanCount) : 0}
-            subtitle="Active care plans"
+            subtitle={demoMode ? "Sample care plans" : "Active care plans"}
             icon={FileText}
             iconGlow="icon-glow-green"
             iconColor="text-[oklch(0.68_0.18_155)]"
@@ -243,7 +366,7 @@ export default function Dashboard() {
           <StatCard
             title="AI Plans"
             value={dashboard ? Number(dashboard.aiPlanCount) : 0}
-            subtitle="AI-generated programs"
+            subtitle={demoMode ? "Sample AI programs" : "AI-generated programs"}
             icon={Sparkles}
             iconGlow="icon-glow-purple"
             iconColor="text-[oklch(0.68_0.20_290)]"
@@ -258,7 +381,12 @@ export default function Dashboard() {
 
         {/* Tabs */}
         <div ref={tabsRevealRef} className="section-hidden">
-          <Tabs defaultValue="patients" className="space-y-5">
+          <Tabs
+            defaultValue="patients"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-5"
+          >
             <TabsList
               data-ocid="dashboard.tabs"
               className="inline-flex gap-1 rounded-2xl border border-[oklch(0.72_0.17_195/0.15)] bg-[oklch(0.17_0.03_240/0.8)] p-1.5 backdrop-blur"
@@ -283,6 +411,37 @@ export default function Dashboard() {
           </Tabs>
         </div>
       </div>
+
+      {/* FAB — Add Patient (only on patients tab, not in demo mode) */}
+      {activeTab === "patients" && !demoMode && (
+        <>
+          <button
+            type="button"
+            data-ocid="dashboard.fab.button"
+            onClick={() => setShowFabAdd(true)}
+            aria-label="Add new patient"
+            className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all duration-200 hover:scale-110"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.78 0.18 195) 0%, oklch(0.72 0.17 195) 100%)",
+              boxShadow:
+                "0 0 32px oklch(0.72 0.17 195 / 0.55), 0 4px 20px oklch(0.05 0.05 240 / 0.7), inset 0 1px 0 oklch(0.9 0.1 200 / 0.3)",
+              color: "oklch(0.10 0.03 240)",
+            }}
+          >
+            {/* Outer pulsing ring */}
+            <span
+              className="absolute inset-0 rounded-full opacity-50"
+              style={{
+                border: "2px solid oklch(0.72 0.17 195 / 0.6)",
+                animation: "ping-beacon 2s cubic-bezier(0,0,0.2,1) infinite",
+              }}
+            />
+            <Plus className="h-6 w-6 relative z-10" strokeWidth={2.5} />
+          </button>
+          <AddPatientDialog open={showFabAdd} onOpenChange={setShowFabAdd} />
+        </>
+      )}
     </div>
   );
 }

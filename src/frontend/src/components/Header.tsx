@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
-import { Activity, LogOut, Shield, User } from "lucide-react";
+import { Activity, LogOut, Shield, User, X } from "lucide-react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useGetCallerUserProfile, useIsCallerAdmin } from "../hooks/useQueries";
 
@@ -16,12 +16,16 @@ interface HeaderProps {
   activeView?: string;
   onNavigateAccess?: () => void;
   onNavigateDashboard?: () => void;
+  demoMode?: boolean;
+  onExitDemo?: () => void;
 }
 
 export default function Header({
   activeView,
   onNavigateAccess,
   onNavigateDashboard,
+  demoMode,
+  onExitDemo,
 }: HeaderProps) {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
@@ -31,20 +35,12 @@ export default function Header({
   const isAuthenticated = !!identity;
   const disabled = loginStatus === "logging-in";
 
-  const handleAuth = async () => {
+  const handleAuth = () => {
     if (isAuthenticated) {
-      await clear();
+      clear();
       queryClient.clear();
     } else {
-      try {
-        await login();
-      } catch (error: any) {
-        console.error("Login error:", error);
-        if (error.message === "User is already authenticated") {
-          await clear();
-          setTimeout(() => login(), 300);
-        }
-      }
+      login();
     }
   };
 
@@ -57,6 +53,28 @@ export default function Header({
           "0 1px 0 oklch(0.72 0.17 195 / 0.1), 0 4px 20px oklch(0.05 0.05 240 / 0.4)",
       }}
     >
+      {/* Demo mode banner */}
+      {demoMode && (
+        <div
+          className="flex items-center justify-between px-4 py-1.5 text-xs font-semibold"
+          style={{
+            background:
+              "linear-gradient(90deg, oklch(0.55 0.18 50 / 0.9) 0%, oklch(0.60 0.20 60 / 0.9) 100%)",
+            color: "oklch(0.98 0.01 60)",
+          }}
+        >
+          <span>Demo Mode — Read-only preview. Changes are not saved.</span>
+          <button
+            type="button"
+            onClick={onExitDemo}
+            data-ocid="header.exit_demo_button"
+            className="flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold hover:bg-black/20 transition-colors"
+          >
+            <X className="h-3 w-3" />
+            Exit Demo
+          </button>
+        </div>
+      )}
       {/* Shimmer power line */}
       <div className="shimmer-border-line" />
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -67,11 +85,25 @@ export default function Header({
           className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
           data-ocid="header.logo_link"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl icon-glow-teal">
-            <Activity className="h-5 w-5 text-[oklch(0.72_0.17_195)]" />
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl icon-glow-teal">
+            {/* Outer pulsing ring */}
+            <span
+              className="eq-ring-1 absolute rounded-full border pointer-events-none"
+              style={{
+                inset: "-4px",
+                borderColor: "oklch(0.72 0.17 195 / 0.3)",
+              }}
+            />
+            <Activity className="h-5 w-5 text-[oklch(0.72_0.17_195)] relative z-10" />
           </div>
           <div>
-            <span className="font-display text-base font-bold tracking-tight text-foreground">
+            <span
+              className="font-display text-base font-bold tracking-tight bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, oklch(0.82 0.14 195) 0%, oklch(0.72 0.17 195) 40%, oklch(0.72 0.2 250) 70%, oklch(0.75 0.2 300) 100%)",
+              }}
+            >
               PhysioAssist
             </span>
             <span className="ml-1.5 rounded-full border border-[oklch(0.72_0.17_195/0.3)] bg-[oklch(0.72_0.17_195/0.1)] px-1.5 py-0.5 text-[10px] font-semibold text-[oklch(0.80_0.12_195)] uppercase tracking-wide">
@@ -123,7 +155,18 @@ export default function Header({
             </button>
           )}
 
-          {isAuthenticated && userProfile ? (
+          {demoMode ? (
+            <Button
+              data-ocid="header.login_button"
+              onClick={handleAuth}
+              disabled={disabled}
+              className="btn-glow rounded-xl bg-[oklch(0.72_0.17_195)] px-5 text-sm font-semibold text-[oklch(0.10_0.03_240)] hover:bg-[oklch(0.78_0.18_195)]"
+            >
+              {loginStatus === "logging-in"
+                ? "Logging in..."
+                : "Login to Get Started"}
+            </Button>
+          ) : isAuthenticated && userProfile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

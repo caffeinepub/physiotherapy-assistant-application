@@ -54,7 +54,7 @@ function TiltCard({ patient, idx, onSelectPatient }: TiltCardProps) {
       onClick={() => onSelectPatient(patient.id)}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="card-3d group w-full rounded-2xl p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.72_0.17_195/0.6)]"
+      className="card-3d holo-shimmer group w-full rounded-2xl p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.72_0.17_195/0.6)]"
       style={{
         animation: "fade-slide-in 0.4s ease forwards",
         animationDelay: `${idx * 0.05}s`,
@@ -140,24 +140,91 @@ export default function PatientsTab({
       {filteredPatients.length === 0 ? (
         <div
           data-ocid="patients.list.empty_state"
-          className="card-3d flex flex-col items-center justify-center rounded-3xl py-16 text-center"
+          className="card-3d flex flex-col items-center justify-center rounded-3xl py-16 text-center relative overflow-hidden"
         >
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl icon-glow-teal">
-            <User className="h-8 w-8 text-[oklch(0.72_0.17_195)]" />
+          {/* Soft radial glow */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 60% 50% at 50% 50%, oklch(0.72 0.17 195 / 0.06) 0%, transparent 70%)",
+            }}
+          />
+          {/* Clipboard + Plus SVG illustration */}
+          <div className="relative mb-6 flex h-24 w-24 items-center justify-center">
+            <div
+              className="absolute inset-0 rounded-3xl"
+              style={{
+                background: "oklch(0.72 0.17 195 / 0.08)",
+                border: "1px solid oklch(0.72 0.17 195 / 0.2)",
+                boxShadow: "0 0 32px oklch(0.72 0.17 195 / 0.12)",
+              }}
+            />
+            <svg
+              viewBox="0 0 64 72"
+              className="w-14 h-14 relative z-10"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              role="img"
+              aria-labelledby="clipboard-title"
+            >
+              <title id="clipboard-title">Empty clipboard</title>
+              {/* Clipboard body */}
+              <rect
+                x="8"
+                y="12"
+                width="48"
+                height="56"
+                rx="6"
+                stroke="oklch(0.72 0.17 195)"
+                strokeWidth="2"
+                fill="oklch(0.72 0.17 195 / 0.06)"
+              />
+              {/* Clip top */}
+              <rect
+                x="22"
+                y="6"
+                width="20"
+                height="12"
+                rx="4"
+                stroke="oklch(0.72 0.17 195)"
+                strokeWidth="2"
+                fill="oklch(0.72 0.17 195 / 0.1)"
+              />
+              {/* Plus sign */}
+              <line
+                x1="32"
+                y1="30"
+                x2="32"
+                y2="50"
+                stroke="oklch(0.72 0.17 195)"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+              <line
+                x1="22"
+                y1="40"
+                x2="42"
+                y2="40"
+                stroke="oklch(0.72 0.17 195)"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
-          <p className="text-base font-semibold text-foreground">
+          <p className="relative z-10 text-base font-semibold text-foreground">
             {searchQuery ? "No patients found" : "No patients yet"}
           </p>
-          <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+          <p className="relative z-10 mt-1 max-w-xs text-sm text-muted-foreground">
             {searchQuery
               ? "Try a different search term."
-              : "Add your first patient to begin tracking assessments and treatment plans."}
+              : "Click the + button below to add your first patient and begin tracking assessments and treatment plans."}
           </p>
           {!searchQuery && (
             <Button
               data-ocid="patients.empty_add.button"
               onClick={() => setShowAddDialog(true)}
-              className="btn-glow mt-5 gap-2 rounded-xl bg-[oklch(0.72_0.17_195)] text-sm font-semibold text-[oklch(0.10_0.03_240)] hover:bg-[oklch(0.78_0.18_195)]"
+              className="btn-glow mt-6 gap-2 rounded-xl bg-[oklch(0.72_0.17_195)] text-sm font-semibold text-[oklch(0.10_0.03_240)] hover:bg-[oklch(0.78_0.18_195)] relative z-10"
             >
               <Plus className="h-4 w-4" />
               Add First Patient

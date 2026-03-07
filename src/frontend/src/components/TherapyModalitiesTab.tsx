@@ -349,7 +349,8 @@ function TherapyCard({ modality, index, onPrescribe }: TherapyCardProps) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.3 }}
-      className="card-3d group rounded-2xl p-5 flex flex-col gap-4"
+      className="card-3d holo-shimmer card-flip-in group rounded-2xl p-5 flex flex-col gap-4"
+      style={{ animationDelay: `${index * 0.05}s` }}
     >
       {/* Header */}
       <div className="flex items-start gap-3">
@@ -643,7 +644,7 @@ export default function TherapyModalitiesTab({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2
-            className="font-display text-xl font-bold bg-clip-text text-transparent"
+            className="heading-underline font-display text-xl font-bold bg-clip-text text-transparent"
             style={{
               backgroundImage:
                 "linear-gradient(135deg, oklch(0.85 0.12 195) 0%, oklch(0.72 0.17 195) 40%, oklch(0.68 0.2 250) 100%)",
