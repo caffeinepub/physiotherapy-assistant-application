@@ -6,6 +6,7 @@ import {
   Calendar,
   FileText,
   FlameKindling,
+  Mic,
   Plus,
   User,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import AddTreatmentPlanDialog from "./AddTreatmentPlanDialog";
 import AssessmentCard from "./AssessmentCard";
 import TherapyModalitiesTab from "./TherapyModalitiesTab";
 import TreatmentPlanCard from "./TreatmentPlanCard";
+import VoiceClinicalScribe from "./VoiceClinicalScribe";
 
 interface PatientDetailViewProps {
   patientId: string;
@@ -204,6 +206,14 @@ export default function PatientDetailView({
               <FlameKindling className="h-4 w-4" />
               Therapy Modalities
             </TabsTrigger>
+            <TabsTrigger
+              data-ocid="patient.voice_scribe.tab"
+              value="voice-scribe"
+              className="flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold transition-all data-[state=active]:bg-[oklch(0.72_0.17_195)] data-[state=active]:text-[oklch(0.10_0.03_240)] data-[state=active]:shadow-glow"
+            >
+              <Mic className="h-4 w-4" />
+              Voice Scribe
+            </TabsTrigger>
           </TabsList>
 
           {/* Assessments tab */}
@@ -301,6 +311,11 @@ export default function PatientDetailView({
           {/* Therapy Modalities tab */}
           <TabsContent value="therapy-modalities" className="space-y-4">
             <TherapyModalitiesTab patientId={patientId} />
+          </TabsContent>
+
+          {/* Voice Scribe tab */}
+          <TabsContent value="voice-scribe" className="space-y-4">
+            <VoiceClinicalScribe />
           </TabsContent>
         </Tabs>
 
