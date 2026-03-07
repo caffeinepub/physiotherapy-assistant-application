@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   Calendar,
   FileText,
+  FlameKindling,
   Plus,
   User,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import {
 import AddAssessmentDialog from "./AddAssessmentDialog";
 import AddTreatmentPlanDialog from "./AddTreatmentPlanDialog";
 import AssessmentCard from "./AssessmentCard";
+import TherapyModalitiesTab from "./TherapyModalitiesTab";
 import TreatmentPlanCard from "./TreatmentPlanCard";
 
 interface PatientDetailViewProps {
@@ -178,7 +180,7 @@ export default function PatientDetailView({
         <Tabs defaultValue="assessments" className="space-y-5">
           <TabsList
             data-ocid="patient.tabs"
-            className="inline-flex gap-1 rounded-2xl border border-[oklch(0.72_0.17_195/0.15)] bg-[oklch(0.17_0.03_240/0.8)] p-1.5 backdrop-blur"
+            className="inline-flex gap-1 rounded-2xl border border-[oklch(0.72_0.17_195/0.15)] bg-[oklch(0.17_0.03_240/0.8)] p-1.5 backdrop-blur flex-wrap"
           >
             <TabsTrigger
               data-ocid="patient.assessments.tab"
@@ -193,6 +195,14 @@ export default function PatientDetailView({
               className="rounded-xl px-5 py-2 text-sm font-semibold transition-all data-[state=active]:bg-[oklch(0.72_0.17_195)] data-[state=active]:text-[oklch(0.10_0.03_240)] data-[state=active]:shadow-glow"
             >
               Treatment Plans
+            </TabsTrigger>
+            <TabsTrigger
+              data-ocid="patient.therapy_modalities.tab"
+              value="therapy-modalities"
+              className="flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold transition-all data-[state=active]:bg-[oklch(0.72_0.17_195)] data-[state=active]:text-[oklch(0.10_0.03_240)] data-[state=active]:shadow-glow"
+            >
+              <FlameKindling className="h-4 w-4" />
+              Therapy Modalities
             </TabsTrigger>
           </TabsList>
 
@@ -286,6 +296,11 @@ export default function PatientDetailView({
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Therapy Modalities tab */}
+          <TabsContent value="therapy-modalities" className="space-y-4">
+            <TherapyModalitiesTab patientId={patientId} />
           </TabsContent>
         </Tabs>
 

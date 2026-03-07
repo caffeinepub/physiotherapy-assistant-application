@@ -1,28 +1,46 @@
-import { Activity } from "lucide-react";
+import { Activity, AlertTriangle } from "lucide-react";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+  const utmHost =
+    typeof window !== "undefined"
+      ? encodeURIComponent(window.location.hostname)
+      : "";
+
   return (
-    <footer className="border-t border-[oklch(0.72_0.17_195/0.1)] bg-[oklch(0.13_0.025_240/0.5)] backdrop-blur">
+    <footer className="border-t border-border/30 bg-background/60 backdrop-blur">
       <div className="container mx-auto px-4 py-5">
-        <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Brand */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Activity className="h-3.5 w-3.5 text-[oklch(0.72_0.17_195)]" />
+            <Activity className="h-3.5 w-3.5 text-primary" />
             <span className="font-display font-semibold text-foreground">
               PhysioAssist
             </span>
-            <span>&bull; Clinical AI Platform</span>
+            <span className="text-border/80">&bull;</span>
+            <span>Clinical AI Platform</span>
           </div>
+
+          {/* Disclaimer */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <AlertTriangle className="h-3 w-3 text-yellow-500 flex-shrink-0" />
+            <span>
+              Clinical decision-support only &mdash; does not replace licensed
+              physiotherapy care.
+            </span>
+          </div>
+
+          {/* Attribution */}
           <p className="text-xs text-muted-foreground">
-            Built with{" "}
+            © {year} &bull; Built with{" "}
             <a
-              href="https://caffeine.ai"
+              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${utmHost}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-[oklch(0.72_0.17_195)] hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               caffeine.ai
-            </a>{" "}
-            &bull; Does not replace licensed physiotherapy care
+            </a>
           </p>
         </div>
       </div>

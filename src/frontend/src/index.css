@@ -339,6 +339,146 @@
     box-shadow: 0 0 16px oklch(0.68 0.2 290 / 0.2);
   }
 
+  .icon-glow-amber {
+    background: oklch(0.72 0.18 60 / 0.12);
+    border: 1px solid oklch(0.72 0.18 60 / 0.3);
+    box-shadow: 0 0 16px oklch(0.72 0.18 60 / 0.2);
+  }
+
+  /* ============================================================
+     LANDING PAGE ANIMATIONS
+     ============================================================ */
+
+  /* Scroll reveal */
+  @keyframes reveal-up {
+    from {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .reveal-up {
+    opacity: 0;
+    animation: reveal-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Scanning beam */
+  @keyframes scan-beam {
+    0% {
+      top: 0%;
+      opacity: 0.8;
+    }
+    90% {
+      top: 95%;
+      opacity: 0.8;
+    }
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
+  .scan-beam {
+    animation: scan-beam 2.5s ease-in-out infinite;
+  }
+
+  /* Joint pulse */
+  @keyframes joint-pulse {
+    0%,
+    100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.4);
+    }
+  }
+  .joint-pulse {
+    animation: joint-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Float */
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+  .float-anim {
+    animation: float-y 4s ease-in-out infinite;
+  }
+
+  /* Glow pulse for buttons */
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 20px oklch(0.72 0.17 195 / 0.35);
+    }
+    50% {
+      box-shadow: 0 0 40px oklch(0.72 0.17 195 / 0.6), 0 0 80px
+        oklch(0.72 0.17 195 / 0.2);
+    }
+  }
+  .glow-pulse {
+    animation: glow-pulse 2.5s ease-in-out infinite;
+  }
+
+  /* Particle fade-in */
+  @keyframes fade-in-slow {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .fade-in-slow {
+    animation: fade-in-slow 1.5s ease forwards;
+  }
+
+  /* Stat counter animate-in */
+  @keyframes count-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .count-up {
+    animation: count-up 0.5s ease forwards;
+  }
+
+  /* Section reveal on scroll (JS controlled) */
+  .section-hidden {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s
+      cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .section-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Card hover lift */
+  .card-lift {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px oklch(0.05 0.05 240 / 0.8), 0 0 40px
+      oklch(0.72 0.17 195 / 0.2);
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
