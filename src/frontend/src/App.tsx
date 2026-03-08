@@ -19,6 +19,25 @@ import { getUrlParameter } from "./utils/urlParams";
 
 type ActiveView = "dashboard" | "access";
 
+function AppLoader({ message }: { message: string }) {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="relative flex flex-col items-center gap-4">
+          <div
+            className="absolute h-32 w-32 rounded-full blur-2xl"
+            style={{ background: "oklch(0.72 0.17 195 / 0.15)" }}
+          />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl icon-glow-teal">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">{message}</p>
+        </div>
+      </div>
+    </ThemeProvider>
+  );
+}
+
 export default function App() {
   const { identity, loginStatus, login } = useInternetIdentity();
   const {
@@ -27,7 +46,11 @@ export default function App() {
     isFetched,
   } = useGetCallerUserProfile();
 
-  const { data: callerRole, isLoading: roleLoading } = useGetCallerUserRole();
+  const {
+    data: callerRole,
+    isLoading: roleLoading,
+    isFetched: roleFetched,
+  } = useGetCallerUserRole();
 
   const [activeView, setActiveView] = useState<ActiveView>("dashboard");
   const [demoMode, setDemoMode] = useState(false);
@@ -38,44 +61,44 @@ export default function App() {
   const isAuthenticated = !!identity;
   const isInitializing = loginStatus === "initializing";
 
+  // Show app loader while auth state resolves after login.
+  // This prevents flash of wrong screen (blank, access restricted, etc.).
+  const isResolvingAuth =
+    isAuthenticated && !demoMode && (profileLoading || roleLoading);
+
+  // A new user who just logged in: profile doesn't exist yet
   const showProfileSetup =
-    isAuthenticated && !profileLoading && isFetched && userProfile === null;
+    isAuthenticated &&
+    !demoMode &&
+    !profileLoading &&
+    isFetched &&
+    userProfile === null;
 
   // A user is "access restricted" when:
   // 1. They are authenticated
   // 2. Their profile exists (they've registered)
-  // 3. Their role is "guest" (blocked / not yet approved)
+  // 3. Their role is definitively "guest" (blocked / not yet approved) — role query has completed
   // 4. They haven't just redeemed a valid invite code in this session
-  const isGuestRole =
-    !roleLoading && callerRole !== undefined && callerRole === UserRole.guest;
+  const isDefinitelyGuest =
+    !roleLoading && roleFetched && callerRole === UserRole.guest;
 
   const showAccessRestricted =
     isAuthenticated &&
+    !demoMode &&
     !profileLoading &&
     isFetched &&
     userProfile !== null &&
-    isGuestRole &&
+    isDefinitelyGuest &&
     !hasValidRedemption();
 
   if (isInitializing) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <div className="flex h-screen items-center justify-center bg-background">
-          <div className="relative flex flex-col items-center gap-4">
-            <div
-              className="absolute h-32 w-32 rounded-full blur-2xl"
-              style={{ background: "oklch(0.72 0.17 195 / 0.15)" }}
-            />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl icon-glow-teal">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">
-              Initializing PhysioAssist...
-            </p>
-          </div>
-        </div>
-      </ThemeProvider>
-    );
+    return <AppLoader message="Initializing PhysioAssist..." />;
+  }
+
+  // While authenticated but waiting for profile/role queries to complete,
+  // show a neutral loading state rather than flashing the wrong screen.
+  if (isResolvingAuth) {
+    return <AppLoader message="Loading your workspace..." />;
   }
 
   // Demo mode: show dashboard without authentication
